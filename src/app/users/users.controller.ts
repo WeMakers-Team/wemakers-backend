@@ -10,7 +10,7 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: '사용자 정보 조회' })
   @ApiResponse({ status: 200, description: 'get all users' })
-  getAllUsers(): UserDto[] {
+  getAllUsers(): any {
     return this.usersService.getAllUsers();
   }
 
