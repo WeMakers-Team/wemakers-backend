@@ -13,10 +13,4 @@ export class UsersController {
   getAllUsers(): any {
     return this.usersService.getAllUsers();
   }
-
-  @Post()
-  @ApiResponse({ status: 201, description: 'create user' })
-  createUser(@Body() createDto: UserDto) {
-    return this.usersService.createUser(createDto);
-  }
 }
