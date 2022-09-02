@@ -20,15 +20,20 @@ export class AuthService {
     private configService: ConfigService,
     private authRepository: AuthRepository,
   ) {}
+
   prisma = new PrismaClient();
 
   async signUp(userData: CreateUserDto): Promise<AuthInterface> {
     try {
-      const newUser = await this.authRepository.createUser(userData);
+      const hashedPassword = await this.hashData(userData.password);
+      const newUser = await this.authRepository.createUser(
+        userData,
+        hashedPassword,
+      );
       return {
         name: newUser.name,
         email: newUser.email,
-        type: newUser.type,
+        role: newUser.role,
       };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -46,12 +51,13 @@ export class AuthService {
     const user = await this.authRepository.findUserByEmail(userDto.email);
 
     if (user && (await this.compareData(userDto.password, user.password))) {
-      const tokens = await this.signTokens(user.id, user.type);
-      await this.authRepository.updateRefreshTokenHash(
-        user.id,
-        tokens.refreshToken,
-      );
-      return tokens;
+      const accessToken = await this.createAccessToken(user.id, user.role);
+      const refreshToken = await this.createRefreshTokens(user.id, user.role);
+
+      return {
+        accessToken,
+        refreshToken,
+      };
     } else {
       throw new UnauthorizedException('login failed');
     }
@@ -61,29 +67,35 @@ export class AuthService {
     await this.authRepository.deleteRefreshToken(userId);
   }
 
-  async signTokens(
-    userId: number,
-    type: Type,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async createAccessToken(userId: number, role: Role): Promise<string> {
     const tokenPayload = {
       id: userId,
-      role: type,
+      role: role,
     };
-    const [at, rt] = await Promise.all([
-      this.jwtService.sign(tokenPayload, {
-        secret: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
-        expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
-      }),
 
-      this.jwtService.sign(tokenPayload, {
-        secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-        expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
-      }),
-    ]);
-    return {
-      accessToken: at,
-      refreshToken: rt,
+    const accessToken = await this.jwtService.sign(tokenPayload, {
+      secret: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+      expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+    });
+
+    return accessToken;
+  }
+
+  async createRefreshTokens(userId: number, role: Role): Promise<string> {
+    const tokenPayload = {
+      id: userId,
+      role: role,
     };
+
+    const refreshToken = this.jwtService.sign(tokenPayload, {
+      secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+      expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
+    });
+
+    const hashToken = await this.hashData(refreshToken);
+    await this.authRepository.updateRefreshTokenHash(userId, hashToken);
+
+    return refreshToken;
   }
 
   async refreshTokens(
@@ -99,21 +111,18 @@ export class AuthService {
     const rtMatches = this.compareData(refreshToken, user.refreshToken);
     if (!rtMatches) throw new UnauthorizedException('Access Denied');
 
-    const tokens = await this.signTokens(user.id, user.type);
+    const accessToken = await this.createAccessToken(user.id, user.role);
 
-    await this.authRepository.updateRefreshTokenHash(
-      user.id,
-      tokens.refreshToken,
-    );
-    return tokens;
+    return { accessToken, refreshToken };
   }
 
-  async compareData(original, hashData) {
+  async compareData(original: string, hashData: string) {
     return await bcrpyt.compare(original, hashData);
   }
 
-  async hashData(data: string) {
+  async hashData(data: string): Promise<string> {
     const salt = await bcrpyt.genSalt();
-    return await bcrpyt.hash(data, salt);
+    const hash = await bcrpyt.hash(data, salt);
+    return hash;
   }
 }

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { IsEmail, IsEnum, IsString, Matches } from 'class-validator';
 
 export class UserDto {
@@ -25,8 +25,8 @@ export class CreateUserDto extends UserDto {
   birthDay: Date;
 
   @ApiProperty({ description: '멘토 혹은 멘티' })
-  @IsEnum(Type, {
+  @IsEnum(Role, {
     message: 'Type only accepts enum values',
   })
-  type: Type;
+  role: Role;
 }

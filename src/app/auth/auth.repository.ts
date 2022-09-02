@@ -7,16 +7,18 @@ export class AuthRepository {
   constructor(private readonly authService: AuthService) {}
   prisma = new PrismaClient();
 
-  async createUser(userData: CreateUserDto): Promise<User> {
-    const hashedPassword = await this.authService.hashData(userData.password);
-
+  async createUser(
+    userData: CreateUserDto,
+    hashedPassword: string,
+  ): Promise<User> {
     const newUser = await this.prisma.user.create({
       data: {
         name: userData.name,
         email: userData.email,
         password: hashedPassword,
         birthday: userData.birthDay,
-        type: userData.type,
+        refreshToken: '',
+        role: userData.role,
       },
     });
     return newUser;
@@ -48,14 +50,12 @@ export class AuthRepository {
   }
 
   async updateRefreshTokenHash(userId: number, refreshToken: string) {
-    const hashToken = await this.authService.hashData(refreshToken);
-
     await this.prisma.user.update({
       where: {
         id: userId,
       },
       data: {
-        refreshToken: hashToken,
+        refreshToken: refreshToken,
       },
     });
   }

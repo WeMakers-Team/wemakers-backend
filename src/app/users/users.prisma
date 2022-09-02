@@ -7,10 +7,19 @@ model Profile {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  username String
-  email    String
-  profile  Profile?
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  password     String
+  birthday     DateTime?
+  refreshToken String    @default("")
+  role         Role      @default(MENTEE)
+  Profile      Profile?
 
   @@map("users")
+}
+
+enum Role {
+  MENTEE
+  MENTOR
 }
