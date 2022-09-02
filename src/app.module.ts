@@ -6,6 +6,12 @@ import { UsersModule } from './app/users/users.module';
 @Module({
   imports: [UsersModule, AuthModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AccessTokenGuard,
+    // },
+  ],
 })
 export class AppModule {}
