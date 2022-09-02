@@ -1,6 +1,6 @@
 import { Type } from '@prisma/client';
 
-export class AuthInreface {
+export class AuthInterface {
   name: string;
   email: string;
   type: Type;

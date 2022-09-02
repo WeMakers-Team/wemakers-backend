@@ -11,12 +11,12 @@ import {
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateUserDto, UserDto } from './dto/auth.dto';
-import { AuthInreface } from './interface/auth.interface';
 import { AccessTokenGuard } from './common/guard/access-token.guard';
 import { RefreshTokenGuadrd } from './common/guard/refresh-token.guard';
 import { GetCurrentUserId } from './common/decorator/get-current-user-id.decorator';
 import { Public } from './common/decorator/public.decorator';
 import { Request } from 'express';
+import { AuthInterface } from './interface/auth.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -28,7 +28,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: ' sign up user' })
   signUp(
     @Body(ValidationPipe) createUserDto: CreateUserDto,
-  ): Promise<AuthInreface> {
+  ): Promise<AuthInterface> {
     return this.authService.signUp(createUserDto);
   }
 
