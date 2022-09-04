@@ -5,29 +5,29 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, PrismaClient, Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { error } from 'console';
 import { AuthCreateDto } from './dto/auth.dto';
 import { AuthInterface } from './interface/auth.interface';
 import * as bcrpyt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { AuthRepository } from './auth.repository';
+import { UsersRepository } from '../users/users.repository';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
-    private authRepository: AuthRepository,
+    private usersService: UsersService,
+    private usersRepository: UsersRepository,
   ) {}
 
-  prisma = new PrismaClient();
-
-  async signUp(userData: AuthCreateDto): Promise<AuthInterface> {
+  async signUp(userDto: AuthCreateDto): Promise<AuthInterface> {
     try {
-      const hashedPassword = await this.hashData(userData.password);
-      const newUser = await this.authRepository.createUser(
-        userData,
+      const hashedPassword = await this.hashData(userDto.password);
+      const newUser = await this.usersRepository.createUser(
+        userDto,
         hashedPassword,
       );
       return {
@@ -48,7 +48,7 @@ export class AuthService {
   async signIn(
     userDto: AuthCreateDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.authRepository.findUserByEmail(userDto.email);
+    const user = await this.usersService.getUser(userDto.email);
 
     if (user && (await this.compareData(userDto.password, user.password))) {
       const accessToken = await this.createAccessToken(user.id, user.role);
@@ -63,7 +63,23 @@ export class AuthService {
   }
 
   async signOut(userId: number) {
-    await this.authRepository.deleteRefreshToken(userId);
+    await this.usersRepository.deleteRefreshToken(userId);
+  }
+
+  async recreateRefreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const user = await this.usersService.getUser(userId);
+
+    if (!user) throw new UnauthorizedException('Access Denied');
+
+    const rtMatches = this.compareData(refreshToken, user.refreshToken);
+    if (!rtMatches) throw new UnauthorizedException('Access Denied');
+
+    const accessToken = await this.createAccessToken(user.id, user.role);
+
+    return { accessToken, refreshToken };
   }
 
   async createAccessToken(userId: number, role: Role): Promise<string> {
@@ -93,27 +109,9 @@ export class AuthService {
 
     const hashToken = await this.hashData(refreshToken);
     console.log('refreshToken type', typeof refreshToken);
-    await this.authRepository.updateRefreshTokenHash(userId, hashToken);
+    await this.usersRepository.updateRefreshTokenHash(userId, hashToken);
 
     return refreshToken;
-  }
-
-  async refreshTokens(
-    userId: number,
-    refreshToken: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.prisma.user.findFirst({
-      where: { id: userId },
-    });
-
-    if (!user) throw new UnauthorizedException('Access Denied');
-
-    const rtMatches = this.compareData(refreshToken, user.refreshToken);
-    if (!rtMatches) throw new UnauthorizedException('Access Denied');
-
-    const accessToken = await this.createAccessToken(user.id, user.role);
-
-    return { accessToken, refreshToken };
   }
 
   async compareData(original: string, hashData: string) {

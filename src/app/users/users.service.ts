@@ -1,24 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
-import { PrismaClient } from '@prisma/client';
-
-export class UserDto {
-  @ApiProperty({ description: '이름' })
-  username: string;
-
-  @ApiProperty({ description: '이메일' })
-  email: string;
-}
+import { User } from '@prisma/client';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
-  prisma = new PrismaClient();
+  constructor(private readonly usersRepository: UsersRepository) {}
 
-  //private users: UserDto[] = [];
+  async getAllUsers(): Promise<User[]> {
+    return await this.usersRepository.findAllUsers();
+  }
 
-  async getAllUsers(): Promise<any> {
-    //return this.users;
-    const users = this.prisma.user.findMany();
-    return users;
+  async getUser(user: number | string): Promise<User> {
+    if (typeof user === 'number') {
+      return this.usersRepository.findUserById(user);
+    } else {
+      return this.usersRepository.findUserByEmail(user);
+    }
   }
 }

@@ -1,21 +1,28 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { PrismaClient, User } from '@prisma/client';
-import { AuthCreateDto } from './dto/auth.dto';
+import { AuthCreateDto } from '../auth/dto/auth.dto';
 
-export class AuthRepository {
+export class UsersRepository {
   prisma = new PrismaClient();
 
-  async createUser(userData: AuthCreateDto, password: string): Promise<User> {
+  async createUser(
+    userData: AuthCreateDto,
+    hashedPassword: string,
+  ): Promise<User> {
     const newUser = await this.prisma.user.create({
       data: {
         name: userData.name,
         email: userData.email,
-        password: password,
+        password: hashedPassword,
         birthday: userData.birthDay,
         role: userData.role,
       },
     });
     return newUser;
+  }
+
+  async findAllUsers(): Promise<User[]> {
+    return await this.prisma.user.findMany();
   }
 
   async findUserById(userId: number): Promise<User> {

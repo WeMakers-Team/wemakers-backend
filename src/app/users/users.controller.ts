@@ -1,16 +1,17 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { UserDto, UsersService } from './users.service';
+import { Controller, Get, Param, Post } from '@nestjs/common';
+import { UsersService } from './users.service';
 
-@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: '사용자 정보 조회' })
-  @ApiResponse({ status: 200, description: 'get all users' })
-  getAllUsers(): any {
+  getAllUsers() {
     return this.usersService.getAllUsers();
+  }
+
+  @Get(':id')
+  getUser(@Param('id') userId: number) {
+    this.usersService.getUser(userId);
   }
 }

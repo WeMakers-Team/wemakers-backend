@@ -1,19 +1,15 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from './jwt.startegy';
+import { JwtAccessTokenStrategy } from './strategy/jwt-access.strategy';
 import { JwtRefreshTokenStrategy } from './strategy/jwt-refresh.strategy';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'dev' ? '.env' : '.env.test',
-      ignoreEnvFile: process.env.NODE_ENV === 'production',
-    }),
+    UsersModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
@@ -24,8 +20,8 @@ import { JwtRefreshTokenStrategy } from './strategy/jwt-refresh.strategy';
   ],
   controllers: [AuthController],
   // auth moudle에서 사용하기 위하며 JwtStrategy 삽입
-  providers: [AuthService, JwtStrategy, JwtRefreshTokenStrategy],
+  providers: [AuthService, JwtAccessTokenStrategy, JwtRefreshTokenStrategy],
   // auth module외에도 Jwt 전부 사용하기 때문에 Expory(캡슐화)
-  exports: [JwtStrategy, PassportModule],
+  exports: [JwtAccessTokenStrategy, PassportModule],
 })
 export class AuthModule {}

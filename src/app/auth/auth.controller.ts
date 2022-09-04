@@ -58,6 +58,6 @@ export class AuthController {
   ) {
     console.log('req', req);
     const token = req.get('authorization');
-    return this.authService.refreshTokens(userId, token);
+    return this.authService.recreateRefreshToken(userId, token);
   }
 }
