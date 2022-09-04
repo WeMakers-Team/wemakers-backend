@@ -5,9 +5,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, PrismaClient, Type } from '@prisma/client';
+import { Prisma, PrismaClient, Role } from '@prisma/client';
 import { error } from 'console';
-import { CreateUserDto, UserDto } from './dto/auth.dto';
+import { AuthCreateDto } from './dto/auth.dto';
 import { AuthInterface } from './interface/auth.interface';
 import * as bcrpyt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
@@ -23,7 +23,7 @@ export class AuthService {
 
   prisma = new PrismaClient();
 
-  async signUp(userData: CreateUserDto): Promise<AuthInterface> {
+  async signUp(userData: AuthCreateDto): Promise<AuthInterface> {
     try {
       const hashedPassword = await this.hashData(userData.password);
       const newUser = await this.authRepository.createUser(
@@ -46,14 +46,13 @@ export class AuthService {
   }
 
   async signIn(
-    userDto: UserDto,
+    userDto: AuthCreateDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.authRepository.findUserByEmail(userDto.email);
 
     if (user && (await this.compareData(userDto.password, user.password))) {
       const accessToken = await this.createAccessToken(user.id, user.role);
       const refreshToken = await this.createRefreshTokens(user.id, user.role);
-
       return {
         accessToken,
         refreshToken,
@@ -93,6 +92,7 @@ export class AuthService {
     });
 
     const hashToken = await this.hashData(refreshToken);
+    console.log('refreshToken type', typeof refreshToken);
     await this.authRepository.updateRefreshTokenHash(userId, hashToken);
 
     return refreshToken;
