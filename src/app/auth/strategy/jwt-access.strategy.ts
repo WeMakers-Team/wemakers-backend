@@ -3,11 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { PrismaClient, User } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { UsersRepository } from 'src/app/users/users.repository';
 
 @Injectable()
 export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
-    private readonly userRepository: User,
+    private readonly userRepository: UsersRepository,
     private readonly configService: ConfigService,
   ) {
     super({

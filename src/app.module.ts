@@ -5,7 +5,6 @@ import { AppService } from './app.service';
 import { AuthModule } from './app/auth/auth.module';
 import { UsersModule } from './app/users/users.module';
 import * as Joi from 'joi';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -17,6 +16,7 @@ import * as Joi from 'joi';
       }),
     }),
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

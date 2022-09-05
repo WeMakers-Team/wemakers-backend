@@ -22,6 +22,6 @@ import { JwtRefreshTokenStrategy } from './strategy/jwt-refresh.strategy';
   // auth moudle에서 사용하기 위하며 JwtStrategy 삽입
   providers: [AuthService, JwtAccessTokenStrategy, JwtRefreshTokenStrategy],
   // auth module외에도 Jwt 전부 사용하기 때문에 Expory(캡슐화)
-  exports: [JwtAccessTokenStrategy, PassportModule],
+  exports: [JwtAccessTokenStrategy, JwtRefreshTokenStrategy, PassportModule],
 })
 export class AuthModule {}
