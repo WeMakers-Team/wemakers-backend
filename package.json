@@ -19,6 +19,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "start:pm2": "yarn pm2 start dist/main.js",
     "prismix": "npx prismix && prisma format",
     "dev": "yarn prismix && ts-node server.ts"
   },
@@ -41,6 +42,7 @@
     "passport-jwt": "^4.0.0",
     "cross-env": "^7.0.3",
     "joi": "^17.6.0",
+    "pm2": "^5.2.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
