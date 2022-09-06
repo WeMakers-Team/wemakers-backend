@@ -12,7 +12,7 @@ import * as Joi from 'joi';
       envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.prod',
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('dev', 'prod').required(),
-        PORT: Joi.number().default(8000),
+        // PORT: Joi.number().default(8000),
       }),
     }),
     UsersModule,
