@@ -19,7 +19,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "start:pm2": "yarn pm2 start dist/main.js",
+    "start:pm2:dev": "cross-env NODE_ENV=dev pm2 start dist/main.js",
+    "start:pm2:prod": "cross-env NODE_ENV=prod pm2 start dist/main.js",
     "prismix": "npx prismix && prisma format",
     "dev": "yarn prismix && ts-node server.ts"
   },
