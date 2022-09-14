@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { UsersRepository } from './users.repository';
 
@@ -10,11 +10,19 @@ export class UsersService {
     return await this.usersRepository.findAllUsers();
   }
 
-  async getUser(user: number | string): Promise<User> {
-    if (typeof user === 'number') {
-      return this.usersRepository.findUserById(user);
+  async getUser(userData: number | string): Promise<User> {
+    let user;
+
+    if (typeof userData === 'number') {
+      user = this.usersRepository.findUserById(userData);
     } else {
-      return this.usersRepository.findUserByEmail(user);
+      user = this.usersRepository.findUserByEmail(userData);
     }
+
+    if (!user) {
+      throw new UnauthorizedException(' This User is not exist');
+    }
+
+    return user;
   }
 }

@@ -4,15 +4,14 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, Role } from '@prisma/client';
-import { error } from 'console';
-import { AuthCreateDto } from './dto/auth.dto';
-import { AuthInterface } from './interface/auth.interface';
 import * as bcrpyt from 'bcrypt';
-import { ConfigService } from '@nestjs/config';
 import { UsersRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
+import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
+import { AuthInterface } from './interface/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -23,11 +22,11 @@ export class AuthService {
     private usersRepository: UsersRepository,
   ) {}
 
-  async signUp(userDto: AuthCreateDto): Promise<AuthInterface> {
+  async signUp(authCreateDto: AuthCreateDto): Promise<AuthInterface> {
     try {
-      const hashedPassword = await this.hashData(userDto.password);
+      const hashedPassword = await this.hashData(authCreateDto.password);
       const newUser = await this.usersRepository.createUser(
-        userDto,
+        authCreateDto,
         hashedPassword,
       );
       return {
@@ -42,24 +41,24 @@ export class AuthService {
         throw new ConflictException('this Email already exists');
       }
     }
-    throw error;
   }
 
   async signIn(
-    userDto: AuthCreateDto,
+    authSignInDto: AuthSignInDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.usersService.getUser(userDto.email);
+    const user = await this.usersService.getUser(authSignInDto.email);
 
-    if (user && (await this.compareData(userDto.password, user.password))) {
-      const accessToken = await this.createAccessToken(user.id, user.role);
-      const refreshToken = await this.createRefreshTokens(user.id, user.role);
-      return {
-        accessToken,
-        refreshToken,
-      };
-    } else {
+    if (!(await this.compareData(authSignInDto.password, user.password))) {
       throw new UnauthorizedException('login failed');
     }
+
+    const accessToken = await this.createAccessToken(user.id, user.role);
+    const refreshToken = await this.createRefreshTokens(user.id, user.role);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   async signOut(userId: number) {
@@ -71,8 +70,6 @@ export class AuthService {
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersService.getUser(userId);
-
-    if (!user) throw new UnauthorizedException('Access Denied');
 
     const rtMatches = this.compareData(refreshToken, user.refreshToken);
     if (!rtMatches) throw new UnauthorizedException('Access Denied');
@@ -107,9 +104,11 @@ export class AuthService {
       expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
     });
 
-    const hashToken = await this.hashData(refreshToken);
-    console.log('refreshToken type', typeof refreshToken);
-    await this.usersRepository.updateRefreshTokenHash(userId, hashToken);
+    const hashedRefreshToken = await this.hashData(refreshToken);
+    await this.usersRepository.updateRefreshTokenHash(
+      userId,
+      hashedRefreshToken,
+    );
 
     return refreshToken;
   }

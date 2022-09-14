@@ -47,7 +47,7 @@ export class AuthCreateDto {
   role: Role;
 }
 
-export class AuthLoginDto {
+export class AuthSignInDto {
   @ApiProperty({ description: '이메일' })
   @IsNotEmpty()
   @IsEmail()
