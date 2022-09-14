@@ -1,5 +1,7 @@
+import { BadRequestException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
+import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
@@ -11,7 +13,6 @@ import {
 export class AuthCreateDto {
   @ApiProperty({ description: '이메일' })
   @IsNotEmpty()
-  @IsString()
   @IsEmail() // email only accept Email Type
   email: string;
 
@@ -28,6 +29,12 @@ export class AuthCreateDto {
   })
   password: string;
 
+  @Transform(({ value, obj }) => {
+    if (value !== obj.password) {
+      throw new BadRequestException('password mismatch.');
+    }
+    return value;
+  })
   @IsNotEmpty()
   @IsString()
   checkPassword: string;
