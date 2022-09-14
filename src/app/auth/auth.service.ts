@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma, RefreshToken, Role } from '@prisma/client';
 import * as bcrpyt from 'bcrypt';
 import { UsersRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
@@ -70,9 +70,11 @@ export class AuthService {
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersService.getUser(userId);
+    const token = await this.findRefreshToken(user.id);
 
-    const rtMatches = this.compareData(refreshToken, user.refreshToken);
-    if (!rtMatches) throw new UnauthorizedException('Access Denied');
+    if (!this.compareData(refreshToken, token.refreshToken)) {
+      throw new UnauthorizedException('Access Denied');
+    }
 
     const accessToken = await this.createAccessToken(user.id, user.role);
 
@@ -111,6 +113,10 @@ export class AuthService {
     );
 
     return refreshToken;
+  }
+
+  async findRefreshToken(userId: number): Promise<RefreshToken> {
+    return await this.usersRepository.findRefreshToken(userId);
   }
 
   async compareData(original: string, hashData: string) {

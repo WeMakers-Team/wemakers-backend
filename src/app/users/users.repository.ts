@@ -1,21 +1,19 @@
-import { UnauthorizedException } from '@nestjs/common';
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, RefreshToken, User } from '@prisma/client';
 import { AuthCreateDto } from '../auth/dto/auth.dto';
 
 export class UsersRepository {
   prisma = new PrismaClient();
 
   async createUser(
-    userData: AuthCreateDto,
+    authCreateDto: AuthCreateDto,
     hashedPassword: string,
   ): Promise<User> {
     const newUser = await this.prisma.user.create({
       data: {
-        name: userData.name,
-        email: userData.email,
+        name: authCreateDto.name,
+        email: authCreateDto.email,
         password: hashedPassword,
-        birthday: userData.birthDay,
-        role: userData.role,
+        role: authCreateDto.role,
       },
     });
     return newUser;
@@ -30,7 +28,6 @@ export class UsersRepository {
       where: { id: userId },
     });
 
-    if (!user) throw new UnauthorizedException(' This User is not exist');
     return user;
   }
 
@@ -39,24 +36,32 @@ export class UsersRepository {
       where: { email },
     });
 
-    if (!user) throw new UnauthorizedException(' This User is not exist');
     return user;
   }
 
+  async findRefreshToken(userId: number): Promise<RefreshToken> {
+    return await this.prisma.refreshToken.findFirst({
+      where: {
+        userId,
+      },
+    });
+  }
+
   async deleteRefreshToken(userId: number) {
-    await this.prisma.user.updateMany({
-      where: { id: userId, refreshToken: { not: null } },
-      data: { refreshToken: null },
+    await this.prisma.refreshToken.delete({
+      where: {
+        userId,
+      },
     });
   }
 
   async updateRefreshTokenHash(userId: number, refreshToken: string) {
-    await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
+    await this.prisma.refreshToken.create({
       data: {
         refreshToken,
+        user: {
+          connect: { id: userId },
+        },
       },
     });
   }
