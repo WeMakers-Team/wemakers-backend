@@ -47,6 +47,18 @@ export class AuthCreateDto {
   role: Role;
 }
 
+export class AuthLoginDto {
+  @ApiProperty({ description: '이메일' })
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ description: '비밀번호' })
+  @IsNotEmpty()
+  @IsString()
+  password: string;
+}
+
 export class TokenDto {
   @ApiProperty({ description: 'refresh token' })
   @IsString()
