@@ -19,3 +19,10 @@ export class AccessTokenGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 }
+
+@Injectable()
+export class RefreshTokenGuadrd extends AuthGuard('jwt-refresh') {
+  constructor() {
+    super();
+  }
+}

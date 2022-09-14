@@ -11,7 +11,7 @@ import * as bcrpyt from 'bcrypt';
 import { UsersRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
 import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
-import { AuthInterface } from './interface/auth.interface';
+import { AuthInterface, JwtPayload } from './interface/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -48,7 +48,9 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersService.getUser(authSignInDto.email);
 
-    if (!(await this.compareData(authSignInDto.password, user.password))) {
+    if (
+      !(user || (await this.compareData(authSignInDto.password, user.password)))
+    ) {
       throw new UnauthorizedException('login failed');
     }
 
@@ -82,7 +84,7 @@ export class AuthService {
   }
 
   async createAccessToken(userId: number, role: Role): Promise<string> {
-    const tokenPayload = {
+    const tokenPayload: JwtPayload = {
       id: userId,
       role: role,
     };
@@ -96,7 +98,7 @@ export class AuthService {
   }
 
   async createRefreshTokens(userId: number, role: Role): Promise<string> {
-    const tokenPayload = {
+    const tokenPayload: JwtPayload = {
       id: userId,
       role: role,
     };
