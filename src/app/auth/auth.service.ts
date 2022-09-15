@@ -49,9 +49,7 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersService.getUser(authSignInDto.email);
 
-    if (
-      !(user || (await this.compareData(authSignInDto.password, user.password)))
-    ) {
+    if (!(await this.compareData(authSignInDto.password, user.password))) {
       throw new UnauthorizedException('login failed');
     }
 
