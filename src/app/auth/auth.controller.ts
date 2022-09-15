@@ -57,4 +57,10 @@ export class AuthController {
     const token = req.get('authorization');
     return await this.authService.recreateAccessToken(userId, token);
   }
+
+  @UseGuards(AccessTokenGuard)
+  @Get('access-test')
+  accessTokenGuardTest() {
+    return 'Access Token Guard Test !';
+  }
 }

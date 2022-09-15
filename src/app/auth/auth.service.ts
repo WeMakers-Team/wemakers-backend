@@ -85,7 +85,7 @@ export class AuthService {
 
   createAccessToken(userId: number, role: Role): string {
     const tokenPayload: JwtPayload = {
-      id: userId,
+      sub: userId,
       role: role,
     };
 
@@ -99,7 +99,7 @@ export class AuthService {
 
   async createRefreshTokens(userId: number, role: Role): Promise<string> {
     const tokenPayload: JwtPayload = {
-      id: userId,
+      sub: userId,
       role: role,
     };
 
