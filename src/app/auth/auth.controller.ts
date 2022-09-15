@@ -10,9 +10,8 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { GetCurrentUserId } from './common/decorator/get-current-user-id.decorator';
-import { AccessTokenGuard } from './common/guard/access-token.guard';
-import { RefreshTokenGuadrd } from './common/guard/refresh-token.guard';
-import { AuthCreateDto } from './dto/auth.dto';
+import { AccessTokenGuard, RefreshTokenGuard } from './common/jwt/jwt.guard';
+import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
 import { AuthInterface } from './interface/auth.interface';
 
 @Controller('auth')
@@ -32,9 +31,9 @@ export class AuthController {
   @ApiResponse({ status: 200, description: ' sign in user' })
   @Post('sign-in')
   signIn(
-    @Body(ValidationPipe) userDto: AuthCreateDto,
+    @Body(ValidationPipe) authSignInDto: AuthSignInDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    return this.authService.signIn(userDto);
+    return this.authService.signIn(authSignInDto);
   }
 
   @ApiOperation({ summary: '사용자 로그아웃' })
@@ -45,7 +44,7 @@ export class AuthController {
     return this.authService.signOut(userId);
   }
 
-  @UseGuards(RefreshTokenGuadrd)
+  @UseGuards(RefreshTokenGuard)
   @Post('refresh-token')
   recreateRefreshToken(
     @GetCurrentUserId() userId: number,

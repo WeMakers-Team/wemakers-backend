@@ -21,7 +21,7 @@ export class AccessTokenGuard extends AuthGuard('jwt') {
 }
 
 @Injectable()
-export class RefreshTokenGuadrd extends AuthGuard('jwt-refresh') {
+export class RefreshTokenGuard extends AuthGuard('jwt-refresh') {
   constructor() {
     super();
   }

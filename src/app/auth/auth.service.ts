@@ -54,7 +54,7 @@ export class AuthService {
       throw new UnauthorizedException('login failed');
     }
 
-    const accessToken = await this.createAccessToken(user.id, user.role);
+    const accessToken = this.createAccessToken(user.id, user.role);
     const refreshToken = await this.createRefreshTokens(user.id, user.role);
 
     return {
@@ -78,19 +78,19 @@ export class AuthService {
       throw new UnauthorizedException('Access Denied');
     }
 
-    const accessToken = await this.createAccessToken(user.id, user.role);
+    const accessToken = this.createAccessToken(user.id, user.role);
 
     return { accessToken, refreshToken };
   }
 
-  async createAccessToken(userId: number, role: Role): Promise<string> {
+  createAccessToken(userId: number, role: Role): string {
     const tokenPayload: JwtPayload = {
       id: userId,
       role: role,
     };
 
-    const accessToken = await this.jwtService.sign(tokenPayload, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+    const accessToken = this.jwtService.sign(tokenPayload, {
+      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
     });
 

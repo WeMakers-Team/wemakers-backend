@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 @Controller('users')
 export class UsersController {
@@ -10,7 +10,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  getUser(@Param('id') userId: number) {
-    this.usersService.getUser(userId);
+  getUser(@Param('id', ParseIntPipe) userId: number) {
+    return this.usersService.getUser(userId);
   }
 }
