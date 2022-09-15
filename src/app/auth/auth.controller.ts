@@ -20,7 +20,6 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: '사용자 회원 가입' })
-  @ApiResponse({ status: 200, description: ' sign up user' })
   @Post('sign-up')
   async signUp(
     @Body(ValidationPipe) authCreateDto: AuthCreateDto,
@@ -29,7 +28,6 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: '사용자 로그인' })
-  @ApiResponse({ status: 200, description: ' sign in user' })
   @Post('sign-in')
   async signIn(
     @Body(ValidationPipe) authSignInDto: AuthSignInDto,
@@ -38,7 +36,6 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: '사용자 로그아웃' })
-  @ApiResponse({ status: 200, description: ' sign out user' })
   @UseGuards(AccessTokenGuard)
   @Delete('sign-out')
   async signOut(@GetCurrentUser() user: User) {
@@ -46,6 +43,7 @@ export class AuthController {
     return { result: true }; //test
   }
 
+  @ApiOperation({ summary: 'access token 재발급' })
   @UseGuards(RefreshTokenGuard)
   @Post('recreate/access-token')
   async recreateAccessToken(
@@ -55,6 +53,7 @@ export class AuthController {
     return { accessToken };
   }
 
+  @ApiOperation({ summary: 'access token 테스트' })
   @UseGuards(AccessTokenGuard)
   @Get('access-test')
   accessTokenGuardTest() {

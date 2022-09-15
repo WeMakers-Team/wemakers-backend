@@ -29,6 +29,7 @@ export class AuthCreateDto {
   })
   password: string;
 
+  @ApiProperty({ description: '비밀번호 확인' })
   @Transform(({ value, obj }) => {
     if (value !== obj.password) {
       throw new BadRequestException('password mismatch.');
@@ -39,7 +40,7 @@ export class AuthCreateDto {
   @IsString()
   checkPassword: string;
 
-  @ApiProperty({ description: '멘토 혹은 멘티' })
+  @ApiProperty({ description: ' "MENTOR" or "MENTEE" ' })
   @IsNotEmpty()
   @IsEnum(Role, {
     message: 'Type only accepts enum values',
