@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, RefreshToken, Role } from '@prisma/client';
 import * as bcrpyt from 'bcrypt';
+import { use } from 'passport';
 import { UsersRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
 import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
@@ -64,7 +65,8 @@ export class AuthService {
   }
 
   async signOut(userId: number) {
-    await this.usersRepository.deleteRefreshToken(userId);
+    const token = await this.usersRepository.findRefreshToken(userId);
+    await this.usersRepository.deleteRefreshToken(token.id);
   }
 
   async recreateAccessToken(
@@ -109,7 +111,7 @@ export class AuthService {
     });
 
     const hashedRefreshToken = await this.hashData(refreshToken);
-    await this.usersRepository.updateRefreshTokenHash(
+    await this.usersRepository.createRefreshTokenHash(
       userId,
       hashedRefreshToken,
     );

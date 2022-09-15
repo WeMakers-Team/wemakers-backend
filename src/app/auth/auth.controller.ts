@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   Post,
   Req,
   UseGuards,
@@ -21,34 +23,38 @@ export class AuthController {
   @ApiOperation({ summary: '사용자 회원 가입' })
   @ApiResponse({ status: 200, description: ' sign up user' })
   @Post('sign-up')
-  signUp(
+  async signUp(
     @Body(ValidationPipe) authCreateDto: AuthCreateDto,
   ): Promise<AuthInterface> {
-    return this.authService.signUp(authCreateDto);
+    return await this.authService.signUp(authCreateDto);
   }
 
   @ApiOperation({ summary: '사용자 로그인' })
   @ApiResponse({ status: 200, description: ' sign in user' })
   @Post('sign-in')
-  signIn(
+  async signIn(
     @Body(ValidationPipe) authSignInDto: AuthSignInDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    return this.authService.signIn(authSignInDto);
+    return await this.authService.signIn(authSignInDto);
   }
 
   @ApiOperation({ summary: '사용자 로그아웃' })
   @ApiResponse({ status: 200, description: ' sign out user' })
   @UseGuards(AccessTokenGuard)
-  @Post('sign-out')
-  signOut(@GetCurrentUserId() userId: number) {
-    return this.authService.signOut(userId);
+  @Delete('sign-out')
+  async signOut(@GetCurrentUserId() userId: number) {
+    await this.authService.signOut(userId);
+    return { result: true }; //test
   }
 
   @UseGuards(RefreshTokenGuard)
-  @Post('refresh-token')
-  recreateAccessToken(@GetCurrentUserId() userId: number, @Req() req: Request) {
-    console.log('req', req);
+  @Post('recreate/access-token')
+  async recreateAccessToken(
+    @GetCurrentUserId() userId: number,
+    @Req() req: Request,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    //console.log('req', req);
     const token = req.get('authorization');
-    return this.authService.recreateAccessToken(userId, token);
+    return await this.authService.recreateAccessToken(userId, token);
   }
 }

@@ -47,15 +47,15 @@ export class UsersRepository {
     });
   }
 
-  async deleteRefreshToken(userId: number) {
+  async deleteRefreshToken(tokenId: number) {
     await this.prisma.refreshToken.delete({
       where: {
-        userId,
+        id: tokenId,
       },
     });
   }
 
-  async updateRefreshTokenHash(userId: number, refreshToken: string) {
+  async createRefreshTokenHash(userId: number, refreshToken: string) {
     await this.prisma.refreshToken.create({
       data: {
         refreshToken,
