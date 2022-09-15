@@ -46,12 +46,9 @@ export class AuthController {
 
   @UseGuards(RefreshTokenGuard)
   @Post('refresh-token')
-  recreateRefreshToken(
-    @GetCurrentUserId() userId: number,
-    @Req() req: Request,
-  ) {
+  recreateAccessToken(@GetCurrentUserId() userId: number, @Req() req: Request) {
     console.log('req', req);
     const token = req.get('authorization');
-    return this.authService.recreateRefreshToken(userId, token);
+    return this.authService.recreateAccessToken(userId, token);
   }
 }

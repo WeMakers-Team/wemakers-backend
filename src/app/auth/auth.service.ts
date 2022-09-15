@@ -67,7 +67,7 @@ export class AuthService {
     await this.usersRepository.deleteRefreshToken(userId);
   }
 
-  async recreateRefreshToken(
+  async recreateAccessToken(
     userId: number,
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
