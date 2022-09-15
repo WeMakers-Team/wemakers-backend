@@ -2,9 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { UsersRepository } from 'src/app/users/users.repository';
 import { UsersService } from 'src/app/users/users.service';
-import { AuthService } from '../../auth.service';
 import { JwtPayload } from '../../interface/auth.interface';
+import * as bcrpyt from 'bcrypt';
 
 @Injectable()
 export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -19,6 +20,7 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload) {
+    console.log(payload);
     const user = await this.userService.getUser(payload.sub);
 
     if (user) {
@@ -36,21 +38,27 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(
     private readonly configService: ConfigService,
-    private readonly userService: AuthService,
+    private readonly userService: UsersService,
+    private readonly userRepository: UsersRepository,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
       secretOrKey: configService.get('JWT_REFRESH_TOKEN_SECRET'),
       passReqToCallback: true,
     });
   }
 
-  async validate(req: Request, payload: JwtPayload) {
-    // const refreshToken = req.get('authorization').replace('Bearer', '').trim();
-    console.log('refresh', payload);
-    return {
-      ...payload,
-      // refreshToken,
-    };
+  async validate(req, payload: JwtPayload) {
+    const user = await this.userService.getUser(payload.sub);
+    const reqRefreshToken = req.body.refreshToken;
+    const userRefreshToken = await this.userRepository.findRefreshToken(
+      payload.sub,
+    );
+
+    if (await bcrpyt.compare(reqRefreshToken, userRefreshToken.refreshToken)) {
+      return user;
+    } else {
+      throw new UnauthorizedException('Access Denied');
+    }
   }
 }

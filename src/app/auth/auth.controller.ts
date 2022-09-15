@@ -4,14 +4,13 @@ import {
   Delete,
   Get,
   Post,
-  Req,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Request } from 'express';
+import { User } from '@prisma/client';
 import { AuthService } from './auth.service';
-import { GetCurrentUserId } from './common/decorator/get-current-user-id.decorator';
+import { GetCurrentUser } from './common/decorator/auth.decorator';
 import { AccessTokenGuard, RefreshTokenGuard } from './common/jwt/jwt.guard';
 import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
 import { AuthInterface } from './interface/auth.interface';
@@ -42,25 +41,29 @@ export class AuthController {
   @ApiResponse({ status: 200, description: ' sign out user' })
   @UseGuards(AccessTokenGuard)
   @Delete('sign-out')
-  async signOut(@GetCurrentUserId() userId: number) {
-    await this.authService.signOut(userId);
+  async signOut(@GetCurrentUser() user: User) {
+    await this.authService.signOut(user.id);
     return { result: true }; //test
   }
 
   @UseGuards(RefreshTokenGuard)
   @Post('recreate/access-token')
   async recreateAccessToken(
-    @GetCurrentUserId() userId: number,
-    @Req() req: Request,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    //console.log('req', req);
-    const token = req.get('authorization');
-    return await this.authService.recreateAccessToken(userId, token);
+    @GetCurrentUser() user: User,
+  ): Promise<{ accessToken: string }> {
+    const accessToken = await this.authService.recreateAccessToken(user.id);
+    return { accessToken };
   }
 
   @UseGuards(AccessTokenGuard)
   @Get('access-test')
   accessTokenGuardTest() {
     return 'Access Token Guard Test !';
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Post('refresh-test')
+  refreshTokenGuardTest() {
+    return 'Refresh Token Guard Test !';
   }
 }

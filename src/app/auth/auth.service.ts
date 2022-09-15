@@ -67,20 +67,11 @@ export class AuthService {
     await this.usersRepository.deleteRefreshToken(token.id);
   }
 
-  async recreateAccessToken(
-    userId: number,
-    refreshToken: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async recreateAccessToken(userId: number): Promise<string> {
     const user = await this.usersService.getUser(userId);
-    const token = await this.findRefreshToken(user.id);
-
-    if (!this.compareData(refreshToken, token.refreshToken)) {
-      throw new UnauthorizedException('Access Denied');
-    }
-
     const accessToken = this.createAccessToken(user.id, user.role);
 
-    return { accessToken, refreshToken };
+    return accessToken;
   }
 
   createAccessToken(userId: number, role: Role): string {
