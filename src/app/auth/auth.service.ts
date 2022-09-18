@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   ConflictException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -49,8 +51,12 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersService.getUser(authSignInDto.email);
 
-    if (!(await this.compareData(authSignInDto.password, user.password))) {
-      throw new UnauthorizedException('login failed');
+    if (!user) {
+      throw new BadRequestException('this email does not exist');
+    } else if (
+      !(await this.compareData(authSignInDto.password, user.password))
+    ) {
+      throw new BadRequestException('password mismatched.');
     }
 
     const accessToken = this.createAccessToken(user.id, user.role);

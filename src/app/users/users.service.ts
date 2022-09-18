@@ -19,10 +19,6 @@ export class UsersService {
       user = this.usersRepository.findUserByEmail(userData);
     }
 
-    if (!user) {
-      throw new UnauthorizedException(' This User is not exist');
-    }
-
     return user;
   }
 }

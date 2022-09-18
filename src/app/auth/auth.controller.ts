@@ -14,6 +14,11 @@ import { GetCurrentUser } from './common/decorator/auth.decorator';
 import { AccessTokenGuard, RefreshTokenGuard } from './common/jwt/jwt.guard';
 import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
 import { AuthInterface } from './interface/auth.interface';
+import {
+  ErrorResponse,
+  GetResponseImpl,
+  PostResponseImpl,
+} from './interface/http.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -31,8 +36,16 @@ export class AuthController {
   @Post('sign-in')
   async signIn(
     @Body(ValidationPipe) authSignInDto: AuthSignInDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    return await this.authService.signIn(authSignInDto);
+  ): Promise<PostResponseImpl | ErrorResponse> {
+    const tokens = await this.authService.signIn(authSignInDto);
+
+    return {
+      statusCode: 201,
+      message: 'ok',
+      result: {
+        tokens: tokens,
+      },
+    };
   }
 
   @ApiOperation({ summary: '사용자 로그아웃' })
