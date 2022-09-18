@@ -38,10 +38,8 @@ export class AuthService {
         role: newUser.role,
       };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        throw new InternalServerErrorException('this Email already exists');
-      } else if (error.code === 'P2002') {
-        throw new ConflictException('this Email already exists');
+      if (error.code === 'P2002') {
+        throw new BadRequestException('this email already exists');
       }
     }
   }

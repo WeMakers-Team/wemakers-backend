@@ -17,7 +17,6 @@ import { AuthInterface } from './interface/auth.interface';
 import {
   DeleteResponstImpl,
   ErrorResponse,
-  GetResponseImpl,
   PostResponseImpl,
 } from './interface/http.interface';
 
@@ -29,8 +28,15 @@ export class AuthController {
   @Post('sign-up')
   async signUp(
     @Body(ValidationPipe) authCreateDto: AuthCreateDto,
-  ): Promise<AuthInterface> {
-    return await this.authService.signUp(authCreateDto);
+  ): Promise<PostResponseImpl | ErrorResponse> {
+    const user = await this.authService.signUp(authCreateDto);
+    return {
+      statusCode: 201,
+      message: 'ok',
+      result: {
+        users: user,
+      },
+    };
   }
 
   @ApiOperation({ summary: '사용자 로그인' })
@@ -66,9 +72,16 @@ export class AuthController {
   @Post('recreate/access-token')
   async recreateAccessToken(
     @GetCurrentUser() user: User,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<PostResponseImpl> {
     const accessToken = await this.authService.recreateAccessToken(user.id);
-    return { accessToken };
+
+    return {
+      statusCode: 201,
+      message: 'ok',
+      result: {
+        token: { accessToken },
+      },
+    };
   }
 
   @ApiOperation({ summary: 'access token 테스트' })

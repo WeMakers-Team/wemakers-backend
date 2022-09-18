@@ -32,7 +32,7 @@ export class AuthCreateDto {
   @ApiProperty({ description: '비밀번호 확인' })
   @Transform(({ value, obj }) => {
     if (value !== obj.password) {
-      throw new BadRequestException('password mismatched.');
+      throw new BadRequestException('password mismatched');
     }
     return value;
   })
