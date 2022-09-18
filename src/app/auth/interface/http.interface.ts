@@ -16,6 +16,11 @@ export class PostResponseImpl implements SuccessResponse {
   result: object;
 }
 
+export class DeleteResponstImpl implements SuccessResponse {
+  statusCode: 204;
+  message: 'ok';
+}
+
 export interface ErrorResponse {
   statusCode: number;
   message: string[];

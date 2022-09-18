@@ -15,6 +15,7 @@ import { AccessTokenGuard, RefreshTokenGuard } from './common/jwt/jwt.guard';
 import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
 import { AuthInterface } from './interface/auth.interface';
 import {
+  DeleteResponstImpl,
   ErrorResponse,
   GetResponseImpl,
   PostResponseImpl,
@@ -51,9 +52,13 @@ export class AuthController {
   @ApiOperation({ summary: '사용자 로그아웃' })
   @UseGuards(AccessTokenGuard)
   @Delete('sign-out')
-  async signOut(@GetCurrentUser() user: User) {
+  async signOut(@GetCurrentUser() user: User): Promise<DeleteResponstImpl> {
     await this.authService.signOut(user.id);
-    return { result: true }; //test
+
+    return {
+      statusCode: 204,
+      message: 'ok',
+    };
   }
 
   @ApiOperation({ summary: 'access token 재발급' })
