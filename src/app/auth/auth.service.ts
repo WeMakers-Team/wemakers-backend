@@ -10,11 +10,13 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, RefreshToken, Role } from '@prisma/client';
 import * as bcrpyt from 'bcrypt';
-import { use } from 'passport';
 import { UsersRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
-import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
-import { AuthInterface, JwtPayload } from './interface/auth.interface';
+import { AuthCreateDto, AuthSignInDto } from '../../common/dto/auth.dto';
+import {
+  AuthInterface,
+  JwtPayload,
+} from '../../common/interface/auth.interface';
 
 @Injectable()
 export class AuthService {

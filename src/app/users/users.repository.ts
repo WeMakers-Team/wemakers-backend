@@ -1,5 +1,5 @@
 import { PrismaClient, RefreshToken, User } from '@prisma/client';
-import { AuthCreateDto } from '../auth/dto/auth.dto';
+import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
   prisma = new PrismaClient();

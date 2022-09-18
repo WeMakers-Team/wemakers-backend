@@ -10,15 +10,14 @@ import {
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { AuthService } from './auth.service';
-import { GetCurrentUser } from './common/decorator/auth.decorator';
-import { AccessTokenGuard, RefreshTokenGuard } from './common/jwt/jwt.guard';
-import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
-import { AuthInterface } from './interface/auth.interface';
+import { GetCurrentUser } from '../../common/decorator/auth.decorator';
+import { AccessTokenGuard, RefreshTokenGuard } from './jwt/jwt.guard';
+import { AuthCreateDto, AuthSignInDto } from '../../common/dto/auth.dto';
 import {
   DeleteResponstImpl,
   ErrorResponse,
   PostResponseImpl,
-} from './interface/http.interface';
+} from '../../common/interface/http-response.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -87,8 +86,8 @@ export class AuthController {
   @ApiOperation({ summary: 'access token 테스트' })
   @UseGuards(AccessTokenGuard)
   @Get('access-test')
-  accessTokenGuardTest() {
-    return 'Access Token Guard Test !';
+  accessTokenGuardTest(@GetCurrentUser() user: User) {
+    return `Access Token Guard Test - ${user.email}!`;
   }
 
   @UseGuards(RefreshTokenGuard)
