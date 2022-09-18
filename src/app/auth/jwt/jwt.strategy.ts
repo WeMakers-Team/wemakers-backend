@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersRepository } from 'src/app/users/users.repository';
 import { UsersService } from 'src/app/users/users.service';
-import { JwtPayload } from '../../interface/auth.interface';
+import { JwtPayload } from '../../../common/interface/auth.interface';
 import * as bcrpyt from 'bcrypt';
 
 @Injectable()
@@ -58,7 +58,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
     if (await bcrpyt.compare(reqRefreshToken, userRefreshToken.refreshToken)) {
       return user;
     } else {
-      throw new UnauthorizedException('Access Denied');
+      throw new UnauthorizedException();
     }
   }
 }

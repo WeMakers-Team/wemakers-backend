@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   ConflictException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -8,11 +10,13 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, RefreshToken, Role } from '@prisma/client';
 import * as bcrpyt from 'bcrypt';
-import { use } from 'passport';
 import { UsersRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
-import { AuthCreateDto, AuthSignInDto } from './dto/auth.dto';
-import { AuthInterface, JwtPayload } from './interface/auth.interface';
+import { AuthCreateDto, AuthSignInDto } from '../../common/dto/auth.dto';
+import {
+  AuthInterface,
+  JwtPayload,
+} from '../../common/interface/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -36,10 +40,8 @@ export class AuthService {
         role: newUser.role,
       };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        throw new InternalServerErrorException('this Email already exists');
-      } else if (error.code === 'P2002') {
-        throw new ConflictException('this Email already exists');
+      if (error.code === 'P2002') {
+        throw new BadRequestException('this email already exists');
       }
     }
   }
@@ -49,8 +51,12 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersService.getUser(authSignInDto.email);
 
-    if (!(await this.compareData(authSignInDto.password, user.password))) {
-      throw new UnauthorizedException('login failed');
+    if (!user) {
+      throw new BadRequestException('this email does not exist');
+    } else if (
+      !(await this.compareData(authSignInDto.password, user.password))
+    ) {
+      throw new BadRequestException('password mismatched.');
     }
 
     const accessToken = this.createAccessToken(user.id, user.role);

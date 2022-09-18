@@ -13,12 +13,12 @@ import {
 export class AuthCreateDto {
   @ApiProperty({ description: '이메일' })
   @IsNotEmpty()
-  @IsEmail() // email only accept Email Type
+  @IsEmail()
   email: string;
 
   @ApiProperty({ description: '이름' })
   @IsNotEmpty()
-  @IsString() // Type only Stirng
+  @IsString()
   name: string;
 
   @ApiProperty({ description: '비밀번호' })
@@ -32,7 +32,7 @@ export class AuthCreateDto {
   @ApiProperty({ description: '비밀번호 확인' })
   @Transform(({ value, obj }) => {
     if (value !== obj.password) {
-      throw new BadRequestException('password mismatch.');
+      throw new BadRequestException('password mismatched');
     }
     return value;
   })
@@ -43,7 +43,7 @@ export class AuthCreateDto {
   @ApiProperty({ description: ' "MENTOR" or "MENTEE" ' })
   @IsNotEmpty()
   @IsEnum(Role, {
-    message: 'Type only accepts enum values',
+    message: 'type only accepts enum values',
   })
   role: Role;
 }

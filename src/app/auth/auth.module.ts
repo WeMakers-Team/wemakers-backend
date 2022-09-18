@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
 import {
   JwtAccessTokenStrategy,
   JwtRefreshTokenStrategy,
-} from './common/jwt/jwt.strategy';
+} from './jwt/jwt.strategy';
 
 @Module({
   imports: [
