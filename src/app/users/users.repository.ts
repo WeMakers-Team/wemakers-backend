@@ -19,21 +19,16 @@ export class UsersRepository {
     return newUser;
   }
 
-  async findAllUsers(): Promise<User[]> {
+  async getAllUsers(): Promise<User[]> {
     return await this.prisma.user.findMany();
   }
 
-  async findUserById(userId: number): Promise<User> {
-    const user = await this.prisma.user.findFirst({
-      where: { id: userId },
-    });
+  async findUserByIdOrEmail(userData: number | string): Promise<User> {
+    const whereOption =
+      typeof userData === 'number' ? { id: userData } : { email: userData };
 
-    return user;
-  }
-
-  async findUserByEmail(email: string): Promise<User> {
     const user = await this.prisma.user.findFirst({
-      where: { email },
+      where: whereOption,
     });
 
     return user;

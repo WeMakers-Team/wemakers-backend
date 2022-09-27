@@ -54,7 +54,9 @@ export class AuthService {
   }
 
   async signIn(authSignInDto: AuthSignInDto): Promise<SignInResponse> {
-    const user: User = await this.usersService.getUser(authSignInDto.email);
+    const user: User = await this.usersRepository.findUserByIdOrEmail(
+      authSignInDto.email,
+    );
 
     if (!user) {
       throw new BadRequestException('this email does not exist');
@@ -85,13 +87,13 @@ export class AuthService {
   }
 
   async recreateAccessToken(userId: number): Promise<string> {
-    const user: User = await this.usersService.getUser(userId);
+    const user: User = await this.usersRepository.findUserByIdOrEmail(userId);
     const accessToken: string = this.createAccessToken(user.id, user.role);
 
     return accessToken;
   }
 
-  createAccessToken(userId: number, role: Role): string {
+  private createAccessToken(userId: number, role: Role): string {
     const tokenPayload: JwtPayloadType = {
       sub: userId,
       role: role,
@@ -105,7 +107,10 @@ export class AuthService {
     return accessToken;
   }
 
-  async createRefreshToken(userId: number, role: Role): Promise<string> {
+  private async createRefreshToken(
+    userId: number,
+    role: Role,
+  ): Promise<string> {
     const tokenPayload: JwtPayloadType = {
       sub: userId,
       role: role,

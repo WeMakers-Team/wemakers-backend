@@ -4,14 +4,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersRepository } from 'src/app/users/users.repository';
 import { UsersService } from 'src/app/users/users.service';
-import { JwtPayload } from '../../../common/interface/auth.interface';
+import { JwtPayloadType } from '../../../common/interface/auth.interface';
 import * as bcrpyt from 'bcrypt';
 
 @Injectable()
 export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     private readonly configService: ConfigService,
-    private readonly userService: UsersService,
+    private readonly userRepository: UsersRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -19,8 +19,8 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayload) {
-    const user = await this.userService.getUser(payload.sub);
+  async validate(payload: JwtPayloadType) {
+    const user = await this.userRepository.findUserByIdOrEmail(payload.sub);
 
     if (user) {
       return user;
@@ -37,7 +37,6 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(
     private readonly configService: ConfigService,
-    private readonly userService: UsersService,
     private readonly userRepository: UsersRepository,
   ) {
     super({
@@ -47,7 +46,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req, payload: JwtPayload) {
+  async validate(req, payload: JwtPayloadType) {
     const reqRefreshToken = req.body.refreshToken;
     const userRefreshToken = await this.userRepository.findRefreshToken(
       payload.sub,
