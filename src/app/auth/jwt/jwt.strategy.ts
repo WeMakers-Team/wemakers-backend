@@ -20,13 +20,12 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload) {
-    console.log(payload);
     const user = await this.userService.getUser(payload.sub);
 
     if (user) {
       return user;
     } else {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Not User');
     }
   }
 }
@@ -49,16 +48,18 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
   }
 
   async validate(req, payload: JwtPayload) {
-    const user = await this.userService.getUser(payload.sub);
     const reqRefreshToken = req.body.refreshToken;
     const userRefreshToken = await this.userRepository.findRefreshToken(
       payload.sub,
     );
 
-    if (await bcrpyt.compare(reqRefreshToken, userRefreshToken.refreshToken)) {
-      return user;
+    if (
+      userRefreshToken &&
+      (await bcrpyt.compare(reqRefreshToken, userRefreshToken.refreshToken))
+    ) {
+      return payload.sub;
     } else {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Unauthorized refreshToken');
     }
   }
 }

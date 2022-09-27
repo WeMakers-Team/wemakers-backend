@@ -70,9 +70,9 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   @Post('recreate/access-token')
   async recreateAccessToken(
-    @GetCurrentUser() user: User,
+    @GetCurrentUser() userId: number,
   ): Promise<PostResponseImpl> {
-    const accessToken = await this.authService.recreateAccessToken(user.id);
+    const accessToken = await this.authService.recreateAccessToken(userId);
 
     return {
       statusCode: 201,
@@ -92,7 +92,9 @@ export class AuthController {
 
   @UseGuards(RefreshTokenGuard)
   @Post('refresh-test')
-  refreshTokenGuardTest() {
-    return 'Refresh Token Guard Test !';
+  refreshTokenGuardTest(@GetCurrentUser() userId: number) {
+    console.log('======UserId=====');
+    console.log(userId);
+    return `Refresh Token Guard Test !`;
   }
 }
