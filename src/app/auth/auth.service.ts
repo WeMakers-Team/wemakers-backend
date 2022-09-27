@@ -1,32 +1,24 @@
-import {
-  BadRequestException,
-  ConflictException,
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, RefreshToken, Role, User } from '@prisma/client';
-import * as bcrpyt from 'bcrypt';
+import { RefreshToken, Role, User } from '@prisma/client';
 import { UsersRepository } from '../users/users.repository';
-import { UsersService } from '../users/users.service';
 import { AuthCreateDto, AuthSignInDto } from '../../common/dto/auth.dto';
 import {
-  AuthInterface,
   JwtPayloadType,
   SignInResponse,
   SignUpResponse,
 } from '../../common/interface/auth.interface';
+import { AuthRepository } from './auth.repository';
+import * as bcrpyt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
-    private usersService: UsersService,
     private usersRepository: UsersRepository,
+    private authRepository: AuthRepository,
   ) {}
 
   async signUp(authCreateDto: AuthCreateDto): Promise<SignUpResponse> {
@@ -79,11 +71,11 @@ export class AuthService {
   }
 
   async signOut(userId: number) {
-    const token: RefreshToken = await this.usersRepository.findRefreshToken(
+    const token: RefreshToken = await this.authRepository.findRefreshToken(
       userId,
     );
 
-    await this.usersRepository.deleteRefreshToken(token.id);
+    await this.authRepository.deleteRefreshToken(token.id);
   }
 
   async recreateAccessToken(userId: number): Promise<string> {
@@ -122,7 +114,7 @@ export class AuthService {
     });
 
     const hashedRefreshToken: string = await this.hashData(refreshToken);
-    await this.usersRepository.createRefreshTokenHash(
+    await this.authRepository.createRefreshTokenHash(
       userId,
       hashedRefreshToken,
     );
@@ -131,7 +123,7 @@ export class AuthService {
   }
 
   async findRefreshToken(userId: number): Promise<RefreshToken> {
-    return await this.usersRepository.findRefreshToken(userId);
+    return await this.authRepository.findRefreshToken(userId);
   }
 
   async compareData(original: string, hashData: string): Promise<boolean> {

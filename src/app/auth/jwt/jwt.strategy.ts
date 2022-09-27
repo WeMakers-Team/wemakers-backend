@@ -6,6 +6,7 @@ import { UsersRepository } from 'src/app/users/users.repository';
 import { UsersService } from 'src/app/users/users.service';
 import { JwtPayloadType } from '../../../common/interface/auth.interface';
 import * as bcrpyt from 'bcrypt';
+import { AuthRepository } from '../auth.repository';
 
 @Injectable()
 export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -37,7 +38,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(
     private readonly configService: ConfigService,
-    private readonly userRepository: UsersRepository,
+    private readonly authRepository: AuthRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
@@ -48,7 +49,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
 
   async validate(req, payload: JwtPayloadType) {
     const reqRefreshToken = req.body.refreshToken;
-    const userRefreshToken = await this.userRepository.findRefreshToken(
+    const userRefreshToken = await this.authRepository.findRefreshToken(
       payload.sub,
     );
 

@@ -1,4 +1,4 @@
-import { PrismaClient, RefreshToken, User } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
@@ -32,32 +32,5 @@ export class UsersRepository {
     });
 
     return user;
-  }
-
-  async findRefreshToken(userId: number): Promise<RefreshToken> {
-    return await this.prisma.refreshToken.findFirst({
-      where: {
-        userId,
-      },
-    });
-  }
-
-  async deleteRefreshToken(tokenId: number) {
-    await this.prisma.refreshToken.delete({
-      where: {
-        id: tokenId,
-      },
-    });
-  }
-
-  async createRefreshTokenHash(userId: number, refreshToken: string) {
-    await this.prisma.refreshToken.create({
-      data: {
-        refreshToken,
-        user: {
-          connect: { id: userId },
-        },
-      },
-    });
   }
 }
