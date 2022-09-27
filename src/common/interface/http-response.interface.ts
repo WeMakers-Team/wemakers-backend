@@ -16,7 +16,7 @@ export class PostResponseImpl implements SuccessResponse {
   result: object;
 }
 
-export class DeleteResponstImpl implements SuccessResponse {
+export class DeleteResponseImpl implements SuccessResponse {
   statusCode: 204;
   message: 'ok';
 }

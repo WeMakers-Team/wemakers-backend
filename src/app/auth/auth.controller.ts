@@ -14,7 +14,7 @@ import { GetCurrentUser } from '../../common/decorator/auth.decorator';
 import { AccessTokenGuard, RefreshTokenGuard } from './jwt/jwt.guard';
 import { AuthCreateDto, AuthSignInDto } from '../../common/dto/auth.dto';
 import {
-  DeleteResponstImpl,
+  DeleteResponseImpl,
   ErrorResponse,
   PostResponseImpl,
 } from '../../common/interface/http-response.interface';
@@ -29,6 +29,7 @@ export class AuthController {
     @Body(ValidationPipe) authCreateDto: AuthCreateDto,
   ): Promise<PostResponseImpl | ErrorResponse> {
     const user = await this.authService.signUp(authCreateDto);
+
     return {
       statusCode: 201,
       message: 'ok',
@@ -57,7 +58,7 @@ export class AuthController {
   @ApiOperation({ summary: '사용자 로그아웃' })
   @UseGuards(AccessTokenGuard)
   @Delete('sign-out')
-  async signOut(@GetCurrentUser() user: User): Promise<DeleteResponstImpl> {
+  async signOut(@GetCurrentUser() user: User): Promise<DeleteResponseImpl> {
     await this.authService.signOut(user.id);
 
     return {

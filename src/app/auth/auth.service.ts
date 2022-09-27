@@ -8,14 +8,16 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, RefreshToken, Role } from '@prisma/client';
+import { Prisma, RefreshToken, Role, User } from '@prisma/client';
 import * as bcrpyt from 'bcrypt';
 import { UsersRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
 import { AuthCreateDto, AuthSignInDto } from '../../common/dto/auth.dto';
 import {
   AuthInterface,
-  JwtPayload,
+  JwtPayloadType,
+  SignInResponse,
+  SignUpResponse,
 } from '../../common/interface/auth.interface';
 
 @Injectable()
@@ -27,14 +29,19 @@ export class AuthService {
     private usersRepository: UsersRepository,
   ) {}
 
-  async signUp(authCreateDto: AuthCreateDto): Promise<AuthInterface> {
+  async signUp(authCreateDto: AuthCreateDto): Promise<SignUpResponse> {
     try {
-      const hashedPassword = await this.hashData(authCreateDto.password);
-      const newUser = await this.usersRepository.createUser(
+      const hashedPassword: string = await this.hashData(
+        authCreateDto.password,
+      );
+
+      const newUser: User = await this.usersRepository.createUser(
         authCreateDto,
         hashedPassword,
       );
+
       return {
+        id: newUser.id,
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
@@ -46,10 +53,8 @@ export class AuthService {
     }
   }
 
-  async signIn(
-    authSignInDto: AuthSignInDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.usersService.getUser(authSignInDto.email);
+  async signIn(authSignInDto: AuthSignInDto): Promise<SignInResponse> {
+    const user: User = await this.usersService.getUser(authSignInDto.email);
 
     if (!user) {
       throw new BadRequestException('this email does not exist');
@@ -59,8 +64,11 @@ export class AuthService {
       throw new BadRequestException('password mismatched.');
     }
 
-    const accessToken = this.createAccessToken(user.id, user.role);
-    const refreshToken = await this.createRefreshTokens(user.id, user.role);
+    const accessToken: string = this.createAccessToken(user.id, user.role);
+    const refreshToken: string = await this.createRefreshToken(
+      user.id,
+      user.role,
+    );
 
     return {
       accessToken,
@@ -69,24 +77,27 @@ export class AuthService {
   }
 
   async signOut(userId: number) {
-    const token = await this.usersRepository.findRefreshToken(userId);
+    const token: RefreshToken = await this.usersRepository.findRefreshToken(
+      userId,
+    );
+
     await this.usersRepository.deleteRefreshToken(token.id);
   }
 
   async recreateAccessToken(userId: number): Promise<string> {
-    const user = await this.usersService.getUser(userId);
-    const accessToken = this.createAccessToken(user.id, user.role);
+    const user: User = await this.usersService.getUser(userId);
+    const accessToken: string = this.createAccessToken(user.id, user.role);
 
     return accessToken;
   }
 
   createAccessToken(userId: number, role: Role): string {
-    const tokenPayload: JwtPayload = {
+    const tokenPayload: JwtPayloadType = {
       sub: userId,
       role: role,
     };
 
-    const accessToken = this.jwtService.sign(tokenPayload, {
+    const accessToken: string = this.jwtService.sign(tokenPayload, {
       secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
     });
@@ -94,18 +105,18 @@ export class AuthService {
     return accessToken;
   }
 
-  async createRefreshTokens(userId: number, role: Role): Promise<string> {
-    const tokenPayload: JwtPayload = {
+  async createRefreshToken(userId: number, role: Role): Promise<string> {
+    const tokenPayload: JwtPayloadType = {
       sub: userId,
       role: role,
     };
 
-    const refreshToken = this.jwtService.sign(tokenPayload, {
+    const refreshToken: string = this.jwtService.sign(tokenPayload, {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
       expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
     });
 
-    const hashedRefreshToken = await this.hashData(refreshToken);
+    const hashedRefreshToken: string = await this.hashData(refreshToken);
     await this.usersRepository.createRefreshTokenHash(
       userId,
       hashedRefreshToken,
@@ -118,13 +129,13 @@ export class AuthService {
     return await this.usersRepository.findRefreshToken(userId);
   }
 
-  async compareData(original: string, hashData: string) {
+  async compareData(original: string, hashData: string): Promise<boolean> {
     return await bcrpyt.compare(original, hashData);
   }
 
   async hashData(data: string): Promise<string> {
-    const salt = await bcrpyt.genSalt();
-    const hash = await bcrpyt.hash(data, salt);
+    const salt: string = await bcrpyt.genSalt();
+    const hash: string = await bcrpyt.hash(data, salt);
     return hash;
   }
 }
