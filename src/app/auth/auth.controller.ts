@@ -48,7 +48,7 @@ export class AuthController {
   @ApiOperation({ summary: 'access token 재발급' })
   @UseGuards(RefreshTokenGuard)
   @Post('recreate/access-token')
-  async recreateAccessToken(@GetCurrentUser() userId: number) {
+  async recreateAccessToken(@GetCurrentUser('sub') userId: number) {
     const accessToken = await this.authService.recreateAccessToken(userId);
 
     return {
@@ -65,7 +65,7 @@ export class AuthController {
 
   @UseGuards(RefreshTokenGuard)
   @Post('refresh-test')
-  refreshTokenGuardTest(@GetCurrentUser() userId: number) {
+  refreshTokenGuardTest(@GetCurrentUser('sub') userId: number) {
     console.log('======UserId=====');
     console.log(userId);
     return `Refresh Token Guard Test !`;

@@ -57,7 +57,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
       userRefreshToken &&
       (await bcrpyt.compare(reqRefreshToken, userRefreshToken.refreshToken))
     ) {
-      return payload.sub;
+      return payload;
     } else {
       throw new UnauthorizedException('Unauthorized refreshToken');
     }
