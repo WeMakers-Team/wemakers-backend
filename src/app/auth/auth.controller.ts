@@ -13,11 +13,6 @@ import { AuthService } from './auth.service';
 import { GetCurrentUser } from '../../common/decorator/auth.decorator';
 import { AccessTokenGuard, RefreshTokenGuard } from './jwt/jwt.guard';
 import { AuthCreateDto, AuthSignInDto } from '../../common/dto/auth.dto';
-import {
-  DeleteResponseImpl,
-  ErrorResponse,
-  PostResponseImpl,
-} from '../../common/interface/http-response.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -25,62 +20,39 @@ export class AuthController {
 
   @ApiOperation({ summary: '사용자 회원 가입' })
   @Post('sign-up')
-  async signUp(
-    @Body(ValidationPipe) authCreateDto: AuthCreateDto,
-  ): Promise<PostResponseImpl | ErrorResponse> {
+  async signUp(@Body(ValidationPipe) authCreateDto: AuthCreateDto) {
     const user = await this.authService.signUp(authCreateDto);
 
     return {
-      statusCode: 201,
-      message: 'ok',
-      result: {
-        users: user,
-      },
+      users: user,
     };
   }
 
   @ApiOperation({ summary: '사용자 로그인' })
   @Post('sign-in')
-  async signIn(
-    @Body(ValidationPipe) authSignInDto: AuthSignInDto,
-  ): Promise<PostResponseImpl | ErrorResponse> {
+  async signIn(@Body(ValidationPipe) authSignInDto: AuthSignInDto) {
     const tokens = await this.authService.signIn(authSignInDto);
 
     return {
-      statusCode: 201,
-      message: 'ok',
-      result: {
-        tokens: tokens,
-      },
+      tokens: tokens,
     };
   }
 
   @ApiOperation({ summary: '사용자 로그아웃' })
   @UseGuards(AccessTokenGuard)
   @Delete('sign-out')
-  async signOut(@GetCurrentUser() user: User): Promise<DeleteResponseImpl> {
+  async signOut(@GetCurrentUser() user: User) {
     await this.authService.signOut(user.id);
-
-    return {
-      statusCode: 204,
-      message: 'ok',
-    };
   }
 
   @ApiOperation({ summary: 'access token 재발급' })
   @UseGuards(RefreshTokenGuard)
   @Post('recreate/access-token')
-  async recreateAccessToken(
-    @GetCurrentUser() userId: number,
-  ): Promise<PostResponseImpl> {
+  async recreateAccessToken(@GetCurrentUser() userId: number) {
     const accessToken = await this.authService.recreateAccessToken(userId);
 
     return {
-      statusCode: 201,
-      message: 'ok',
-      result: {
-        token: { accessToken },
-      },
+      tokens: { accessToken },
     };
   }
 

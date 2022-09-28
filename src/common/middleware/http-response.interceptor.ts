@@ -8,9 +8,9 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 export interface Response<T> {
-  statusCode?: number;
-  message?: string;
-  result: T;
+  statusCode: number;
+  message: string;
+  result?: T;
 }
 
 @Injectable()
@@ -22,6 +22,8 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
     const response = context.switchToHttp().getResponse();
     const statusCode = response?.statusCode;
     const message = 'ok';
+
+    console.log('TEST');
 
     return next
       .handle()
