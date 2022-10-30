@@ -1,24 +1,20 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from '@prisma/client';
+import { FindUserResponse } from 'src/common/interface/users.interface';
 import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async getAllUsers(): Promise<User[]> {
-    return await this.usersRepository.findAllUsers();
-  }
+  async findUser(userId: number): Promise<FindUserResponse> {
+    const user = await this.usersRepository.findUserByIdOrEmail(userId);
 
-  async getUser(userData: number | string): Promise<User> {
-    let user;
-
-    if (typeof userData === 'number') {
-      user = this.usersRepository.findUserById(userData);
-    } else {
-      user = this.usersRepository.findUserByEmail(userData);
-    }
-
-    return user;
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
   }
 }

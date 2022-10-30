@@ -1,4 +1,4 @@
-import { PrismaClient, RefreshToken, User } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
@@ -19,50 +19,18 @@ export class UsersRepository {
     return newUser;
   }
 
-  async findAllUsers(): Promise<User[]> {
+  async getAllUsers(): Promise<User[]> {
     return await this.prisma.user.findMany();
   }
 
-  async findUserById(userId: number): Promise<User> {
+  async findUserByIdOrEmail(userData: number | string): Promise<User> {
+    const whereOption =
+      typeof userData === 'number' ? { id: userData } : { email: userData };
+
     const user = await this.prisma.user.findFirst({
-      where: { id: userId },
+      where: whereOption,
     });
 
     return user;
-  }
-
-  async findUserByEmail(email: string): Promise<User> {
-    const user = await this.prisma.user.findFirst({
-      where: { email },
-    });
-
-    return user;
-  }
-
-  async findRefreshToken(userId: number): Promise<RefreshToken> {
-    return await this.prisma.refreshToken.findFirst({
-      where: {
-        userId,
-      },
-    });
-  }
-
-  async deleteRefreshToken(tokenId: number) {
-    await this.prisma.refreshToken.delete({
-      where: {
-        id: tokenId,
-      },
-    });
-  }
-
-  async createRefreshTokenHash(userId: number, refreshToken: string) {
-    await this.prisma.refreshToken.create({
-      data: {
-        refreshToken,
-        user: {
-          connect: { id: userId },
-        },
-      },
-    });
   }
 }

@@ -5,6 +5,8 @@ import { AppService } from './app.service';
 import { AuthModule } from './app/auth/auth.module';
 import { UsersModule } from './app/users/users.module';
 import * as Joi from 'joi';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ResponseInterceptor } from './common/middleware/http-response.interceptor';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,6 +22,10 @@ import * as Joi from 'joi';
   ],
   controllers: [AppController],
   providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
+    },
     AppService,
     // {
     //   provide: APP_GUARD,
