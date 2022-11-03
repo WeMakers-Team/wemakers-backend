@@ -4,8 +4,10 @@ import {
   ExceptionFilter,
   HttpException,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { exceptionMessagesAuth } from '../exceptionMessage';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -23,6 +25,24 @@ export class HttpExceptionFilter implements ExceptionFilter {
       statusCode,
       message: response['message'],
       code: response['code'],
+    };
+
+    res.status(statusCode).json(log);
+  }
+}
+
+@Catch(UnauthorizedException)
+export class JwtexceptionFilter implements ExceptionFilter {
+  catch(exception: UnauthorizedException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const res = ctx.getResponse<Response>();
+    const statusCode = exception.getStatus();
+
+    const errorMessage = exceptionMessagesAuth.UNVERIFIED_TOKEN;
+    const log = {
+      statusCode,
+      message: errorMessage['message'],
+      code: errorMessage['code'],
     };
 
     res.status(statusCode).json(log);
