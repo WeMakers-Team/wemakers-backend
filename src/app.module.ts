@@ -7,7 +7,10 @@ import { UsersModule } from './app/users/users.module';
 import * as Joi from 'joi';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseInterceptor } from './common/middleware/http-response.interceptor';
-import { HttpExceptionFilter } from './common/middleware/exception-filter';
+import {
+  HttpExceptionFilter,
+  JwtexceptionFilter,
+} from './common/middleware/exception-filter';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -30,6 +33,10 @@ import { HttpExceptionFilter } from './common/middleware/exception-filter';
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: JwtexceptionFilter,
     },
     // {
     //   provide: APP_GUARD,

@@ -1,0 +1,11 @@
+{
+  "NOT_FOUND_USER": {
+    "message": "테스트용 exception message",
+    "code": "00001"
+  },
+
+  "UNVERIFIED_TOKEN": {
+    "message": "유효하지 않은 토큰 입니다",
+    "code": "UNVERIFIED_TOKEN"
+  }
+}
