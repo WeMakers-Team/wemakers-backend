@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
+import { AuthRepository } from './auth.repository';
 import { AuthService } from './auth.service';
 import {
   JwtAccessTokenStrategy,
@@ -22,7 +23,12 @@ import {
   ],
   controllers: [AuthController],
   // auth moudle에서 사용하기 위하며 JwtStrategy 삽입
-  providers: [AuthService, JwtAccessTokenStrategy, JwtRefreshTokenStrategy],
+  providers: [
+    AuthService,
+    AuthRepository,
+    JwtAccessTokenStrategy,
+    JwtRefreshTokenStrategy,
+  ],
   // auth module외에도 Jwt 전부 사용하기 때문에 Expory(캡슐화)
   exports: [JwtAccessTokenStrategy, JwtRefreshTokenStrategy, PassportModule],
 })

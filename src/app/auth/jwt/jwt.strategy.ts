@@ -7,6 +7,7 @@ import { UsersService } from 'src/app/users/users.service';
 import { JwtPayloadType } from '../../../common/interface/auth.interface';
 import * as bcrpyt from 'bcrypt';
 import { AuthRepository } from '../auth.repository';
+import { exceptionMessagesAuth } from 'src/common/exceptionMessage';
 
 @Injectable()
 export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -16,6 +17,7 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      passReqToCallback: true,
       secretOrKey: configService.get('JWT_ACCESS_TOKEN_SECRET'),
     });
   }
@@ -26,7 +28,7 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (user) {
       return user;
     } else {
-      throw new UnauthorizedException('Not User');
+      throw new UnauthorizedException(exceptionMessagesAuth.UNVERIFIED_TOKEN);
     }
   }
 }
@@ -59,7 +61,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
     ) {
       return payload;
     } else {
-      throw new UnauthorizedException('Unauthorized refreshToken');
+      throw new UnauthorizedException(exceptionMessagesAuth.UNVERIFIED_TOKEN);
     }
   }
 }
