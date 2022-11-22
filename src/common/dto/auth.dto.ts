@@ -48,7 +48,9 @@ export class SignInDto extends PickType(AuthCreateDto, [
   'password',
 ] as const) {}
 
-export class UserIdentifier extends PickType(AuthCreateDto, 'id') {}
+export class UserIdentifier {
+  userId: number;
+}
 
 export class UserInfoToCreateToken extends UserIdentifier {
   @IsEnum(Role, {

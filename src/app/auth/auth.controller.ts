@@ -44,7 +44,7 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   @Post('recreate/access-token')
   async recreateAccessToken(
-    @GetCurrentUser('sub') { userId }: UserIdentifier,
+    @GetCurrentUser() { userId }: UserIdentifier,
   ): Promise<Omit<AuthVerificationToken, 'refreshToken'>> {
     return await this.authService.recreateAccessToken(userId);
   }
