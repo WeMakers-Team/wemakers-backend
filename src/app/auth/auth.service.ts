@@ -1,16 +1,28 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { RefreshToken, Role, User } from '@prisma/client';
+import { RefreshToken, User } from '@prisma/client';
 import { UsersRepository } from '../users/users.repository';
-import { AuthCreateDto, AuthSignInDto } from '../../common/dto/auth.dto';
 import {
+  AuthCreateDto,
+  DataToCompare,
+  DataToHash,
+  SignInDto,
+  UserIdentifier,
+  UserInfoToCreateToken,
+} from '../../common/dto/auth.dto';
+import {
+  Account,
+  AuthAccessToekn,
+  AuthRefreshToken,
+  AuthVerificationToken,
+  CompareDataResponse,
+  HashDataResponse,
   JwtPayloadType,
-  SignInResponse,
-  SignUpResponse,
 } from '../../common/interface/auth.interface';
 import { AuthRepository } from './auth.repository';
 import * as bcrpyt from 'bcrypt';
+import { exceptionMessagesAuth } from 'src/common/exceptionMessage/';
 
 @Injectable()
 export class AuthService {
@@ -21,71 +33,99 @@ export class AuthService {
     private authRepository: AuthRepository,
   ) {}
 
-  async signUp(authCreateDto: AuthCreateDto): Promise<SignUpResponse> {
+  async signUp(authCreateDto: AuthCreateDto): Promise<Account> {
     try {
-      const hashedPassword: string = await this.hashData(
-        authCreateDto.password,
-      );
+      const { password } = authCreateDto;
 
-      const newUser: User = await this.usersRepository.createUser(
+      const { hashedData } = await this.hashData({ dataNeedTohash: password });
+
+      const newUser = await this.usersRepository.createUser(
         authCreateDto,
-        hashedPassword,
+        hashedData,
       );
 
-      return {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-      };
+      const { password: newUserpassword, ...response } = newUser;
+
+      return response;
     } catch (error) {
       if (error.code === 'P2002') {
-        throw new BadRequestException('this email already exists');
+        throw new HttpException(
+          exceptionMessagesAuth.THIS_USER_ALREADY_EXISTS,
+          400,
+        );
       }
+      throw new HttpException(error, 400);
     }
   }
 
-  async signIn(authSignInDto: AuthSignInDto): Promise<SignInResponse> {
-    const user: User = await this.usersRepository.findUserByIdOrEmail(
-      authSignInDto.email,
-    );
+  async signIn(authSignInDto: SignInDto): Promise<AuthVerificationToken> {
+    const { email, password } = authSignInDto;
+    try {
+      const {
+        id: userId,
+        password: userPassword,
+        role: userRole,
+      } = await this.usersRepository.findUserByIdOrEmail(email);
 
-    if (!user) {
-      throw new BadRequestException('this email does not exist');
-    } else if (
-      !(await this.compareData(authSignInDto.password, user.password))
-    ) {
-      throw new BadRequestException('password mismatched.');
+      await this.compareData({
+        dataNeedTohash: password,
+        hashedData: userPassword,
+      });
+
+      if (!userId) {
+        throw new HttpException(
+          exceptionMessagesAuth.THIS_EAMIL_DOES_NOT_EXIST,
+          400,
+        );
+      }
+
+      const { accessToken } = this.createAccessToken({
+        userId,
+        role: userRole,
+      });
+
+      const { refreshToken } = await this.createRefreshToken({
+        userId: userId,
+        role: userRole,
+      });
+
+      const response: AuthVerificationToken = { accessToken, refreshToken };
+
+      return response;
+    } catch (error) {
+      throw new HttpException(error, 400);
     }
-
-    const accessToken: string = this.createAccessToken(user.id, user.role);
-    const refreshToken: string = await this.createRefreshToken(
-      user.id,
-      user.role,
-    );
-
-    return {
-      accessToken,
-      refreshToken,
-    };
   }
 
-  async signOut(userId: number) {
-    const token: RefreshToken = await this.authRepository.findRefreshToken(
+  async signOut(userId: number): Promise<void> {
+    try {
+      const { id: tokenId } = await this.authRepository.findRefreshToken(
+        userId,
+      );
+      await this.authRepository.deleteRefreshToken(tokenId);
+    } catch (error) {
+      throw new HttpException(error, 400);
+    }
+  }
+
+  async recreateAccessToken(userId: number): Promise<AuthAccessToekn> {
+    const { id, role }: User = await this.usersRepository.findUserByIdOrEmail(
       userId,
     );
 
-    await this.authRepository.deleteRefreshToken(token.id);
+    const { accessToken } = this.createAccessToken({ userId: id, role });
+
+    const response: AuthAccessToekn = {
+      accessToken,
+    };
+
+    return response;
   }
 
-  async recreateAccessToken(userId: number): Promise<string> {
-    const user: User = await this.usersRepository.findUserByIdOrEmail(userId);
-    const accessToken: string = this.createAccessToken(user.id, user.role);
-
-    return accessToken;
-  }
-
-  private createAccessToken(userId: number, role: Role): string {
+  private createAccessToken({
+    userId,
+    role,
+  }: UserInfoToCreateToken): AuthAccessToekn {
     const tokenPayload: JwtPayloadType = {
       sub: userId,
       role: role,
@@ -96,13 +136,17 @@ export class AuthService {
       expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
     });
 
-    return accessToken;
+    const response = {
+      accessToken,
+    };
+
+    return response;
   }
 
-  private async createRefreshToken(
-    userId: number,
-    role: Role,
-  ): Promise<string> {
+  private async createRefreshToken({
+    userId,
+    role,
+  }: UserInfoToCreateToken): Promise<AuthRefreshToken> {
     const tokenPayload: JwtPayloadType = {
       sub: userId,
       role: role,
@@ -113,26 +157,60 @@ export class AuthService {
       expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
     });
 
-    const hashedRefreshToken: string = await this.hashData(refreshToken);
-    await this.authRepository.createRefreshTokenHash(
-      userId,
-      hashedRefreshToken,
-    );
+    if (!refreshToken) {
+      throw new HttpException(
+        exceptionMessagesAuth.REFRESH_TOKEN_DOES_NOT_EXIST,
+        400,
+      );
+    }
 
-    return refreshToken;
+    const { hashedData } = await this.hashData({
+      dataNeedTohash: refreshToken,
+    });
+
+    try {
+      await this.authRepository.createRefreshTokenHash(userId, hashedData);
+    } catch (err) {
+      throw new HttpException(err, 400);
+    }
+    const response: AuthRefreshToken = {
+      refreshToken,
+    };
+
+    return response;
   }
 
-  async findRefreshToken(userId: number): Promise<RefreshToken> {
+  async findRefreshToken({ userId }: UserIdentifier): Promise<RefreshToken> {
     return await this.authRepository.findRefreshToken(userId);
   }
 
-  async compareData(original: string, hashData: string): Promise<boolean> {
-    return await bcrpyt.compare(original, hashData);
+  async compareData({
+    dataNeedTohash,
+    hashedData,
+  }: DataToCompare): Promise<CompareDataResponse> {
+    const compare = await bcrpyt.compare(dataNeedTohash, hashedData);
+
+    if (!compare) {
+      throw new HttpException(
+        exceptionMessagesAuth.COMPARE_DATA_RETURN_FALSE,
+        400,
+      );
+    }
+
+    const response: CompareDataResponse = {
+      isCompareResponse: true,
+    };
+
+    return response;
   }
 
-  async hashData(data: string): Promise<string> {
-    const salt: string = await bcrpyt.genSalt();
-    const hash: string = await bcrpyt.hash(data, salt);
-    return hash;
+  async hashData({ dataNeedTohash }: DataToHash): Promise<HashDataResponse> {
+    const salt = await bcrpyt.genSalt();
+    const hashedData: string = await bcrpyt.hash(dataNeedTohash, salt);
+
+    const response: HashDataResponse = {
+      hashedData,
+    };
+    return response;
   }
 }

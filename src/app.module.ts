@@ -6,11 +6,11 @@ import { AuthModule } from './app/auth/auth.module';
 import { UsersModule } from './app/users/users.module';
 import * as Joi from 'joi';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { ResponseInterceptor } from './common/middleware/http-response.interceptor';
+import { ResponseInterceptor } from './middleware/http-response.interceptor';
 import {
   HttpExceptionFilter,
   JwtexceptionFilter,
-} from './common/middleware/exception-filter';
+} from './middleware/exception-filter';
 @Module({
   imports: [
     ConfigModule.forRoot({
