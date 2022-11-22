@@ -6,7 +6,6 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { GetCurrentUser } from '../../common/decorator/auth.decorator';
 import { AccessTokenGuard, RefreshTokenGuard } from './jwt/jwt.guard';
@@ -15,7 +14,11 @@ import {
   SignInDto,
   UserIdentifier,
 } from '../../common/dto/auth.dto';
-import { AuthVerificationToken } from 'src/common/interface/auth.interface';
+import {
+  Account,
+  AuthAccessToken,
+  AuthVerificationToken,
+} from 'src/common/interface/auth.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -24,7 +27,7 @@ export class AuthController {
   @Post('sign-up')
   async signUp(
     @Body(ValidationPipe) authCreateDto: AuthCreateDto,
-  ): Promise<Omit<User, 'password'>> {
+  ): Promise<Account> {
     return await this.authService.signUp(authCreateDto);
   }
 
@@ -45,7 +48,7 @@ export class AuthController {
   @Post('recreate/access-token')
   async recreateAccessToken(
     @GetCurrentUser() { userId }: UserIdentifier,
-  ): Promise<Omit<AuthVerificationToken, 'refreshToken'>> {
+  ): Promise<AuthAccessToken> {
     return await this.authService.recreateAccessToken(userId);
   }
 }

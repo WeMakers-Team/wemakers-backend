@@ -13,7 +13,7 @@ import {
 } from '../../common/dto/auth.dto';
 import {
   Account,
-  AuthAccessToekn,
+  AuthAccessToken,
   AuthRefreshToken,
   AuthVerificationToken,
   CompareDataResponse,
@@ -36,15 +36,10 @@ export class AuthService {
   async signUp(authCreateDto: AuthCreateDto): Promise<Account> {
     try {
       const { password } = authCreateDto;
-
       const { hashedData } = await this.hashData({ dataNeedTohash: password });
 
-      const newUser = await this.usersRepository.createUser(
-        authCreateDto,
-        hashedData,
-      );
-
-      const { password: newUserpassword, ...response } = newUser;
+      const { password: newUserpassword, ...response } =
+        await this.usersRepository.createUser(authCreateDto, hashedData);
 
       return response;
     } catch (error) {
@@ -58,8 +53,7 @@ export class AuthService {
     }
   }
 
-  async signIn(authSignInDto: SignInDto): Promise<AuthVerificationToken> {
-    const { email, password } = authSignInDto;
+  async signIn({ email, password }: SignInDto): Promise<AuthVerificationToken> {
     try {
       const {
         id: userId,
@@ -90,7 +84,6 @@ export class AuthService {
       });
 
       const response: AuthVerificationToken = { accessToken, refreshToken };
-
       return response;
     } catch (error) {
       throw new HttpException(error, 400);
@@ -108,14 +101,11 @@ export class AuthService {
     }
   }
 
-  async recreateAccessToken(userId: number): Promise<AuthAccessToekn> {
-    const { id, role }: User = await this.usersRepository.findUserByIdOrEmail(
-      userId,
-    );
-
+  async recreateAccessToken(userId: number): Promise<AuthAccessToken> {
+    const { id, role } = await this.usersRepository.findUserByIdOrEmail(userId);
     const { accessToken } = this.createAccessToken({ userId: id, role });
 
-    const response: AuthAccessToekn = {
+    const response: AuthAccessToken = {
       accessToken,
     };
 
@@ -125,10 +115,10 @@ export class AuthService {
   private createAccessToken({
     userId,
     role,
-  }: UserInfoToCreateToken): AuthAccessToekn {
+  }: UserInfoToCreateToken): AuthAccessToken {
     const tokenPayload: JwtPayloadType = {
       sub: userId,
-      role: role,
+      role,
     };
 
     const accessToken: string = this.jwtService.sign(tokenPayload, {
@@ -149,7 +139,7 @@ export class AuthService {
   }: UserInfoToCreateToken): Promise<AuthRefreshToken> {
     const tokenPayload: JwtPayloadType = {
       sub: userId,
-      role: role,
+      role,
     };
 
     const refreshToken: string = this.jwtService.sign(tokenPayload, {
@@ -170,14 +160,13 @@ export class AuthService {
 
     try {
       await this.authRepository.createRefreshTokenHash(userId, hashedData);
+      const response: AuthRefreshToken = {
+        refreshToken,
+      };
+      return response;
     } catch (err) {
       throw new HttpException(err, 400);
     }
-    const response: AuthRefreshToken = {
-      refreshToken,
-    };
-
-    return response;
   }
 
   async findRefreshToken({ userId }: UserIdentifier): Promise<RefreshToken> {

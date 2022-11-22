@@ -12,9 +12,8 @@ export interface AuthVerificationToken {
 
 export type Account = Omit<User, 'password'>;
 
-export type AuthAccessToekn = Omit<AuthVerificationToken, 'refreshToken'>;
-
-export type AuthRefreshToken = Omit<AuthVerificationToken, 'accessToken'>;
+export type AuthAccessToken = Pick<AuthVerificationToken, 'accessToken'>;
+export type AuthRefreshToken = Pick<AuthVerificationToken, 'refreshToken'>;
 
 export interface CompareDataResponse {
   isCompareResponse: boolean;

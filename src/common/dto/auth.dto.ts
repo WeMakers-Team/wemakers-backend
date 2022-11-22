@@ -1,11 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
-import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
+import { PickType } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsString,
   Matches,
 } from 'class-validator';
@@ -49,6 +50,8 @@ export class SignInDto extends PickType(AuthCreateDto, [
 ] as const) {}
 
 export class UserIdentifier {
+  @IsNumber()
+  @IsNotEmpty()
   userId: number;
 }
 
