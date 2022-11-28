@@ -25,8 +25,8 @@
     "dev": "yarn prismix && ts-node server.ts",
     "migrate:dev": "dotenv -e .env.dev -- yarn prisma migrate dev",
     "migrate:prod": "dotenv -e .env.prod -- yarn prisma migrate dev",
-    "push:dev": "dotenv -e .env.development -- yarn prisma db push",
-    "push:prod": "dotenv -e .env.production -- yarn prisma db push"
+    "push:dev": "dotenv -e .env.dev -- yarn prisma db push",
+    "push:prod": "dotenv -e .env.prod -- yarn prisma db push"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
