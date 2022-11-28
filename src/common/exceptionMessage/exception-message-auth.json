@@ -8,22 +8,27 @@
     "message": "유효하지 않은 토큰 입니다",
     "code": "UNVERIFIED_TOKEN"
   },
+
   "THIS_USER_ALREADY_EXISTS": {
     "message": "해당 유저는 이미 회원가입 되어 있습니다",
     "code": "00002"
   },
+
   "THIS_EAMIL_DOES_NOT_EXIST": {
     "message": "해당 이메일은 존재하지 않습니다",
     "code": "00003"
   },
+
   "PASSWORD_DOES_NOT_MATCH": {
     "message": "비밀번호가 일치하지 않습니다",
     "code": "00004"
   },
+
   "REFRESH_TOKEN_DOES_NOT_EXIST": {
     "message": "리프레시 토근이 존재하지 않습니다",
     "code": "00005"
   },
+
   "COMPARE_DATA_RETURN_FALSE": {
     "message": "비교 데이터가 서로 일치하지 않습니다",
     "code": "00006"
