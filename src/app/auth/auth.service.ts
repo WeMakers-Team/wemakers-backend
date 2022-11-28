@@ -55,20 +55,24 @@ export class AuthService {
 
   async signIn({ email, password }: SignInDto): Promise<AuthVerificationToken> {
     try {
-      const {
-        id: userId,
-        password: userPassword,
-        role: userRole,
-      } = await this.usersRepository.findUserByIdOrEmail(email);
+      const user = await this.usersRepository.findUserByIdOrEmail(email);
 
-      await this.compareData({
+      if (!user) {
+        throw new HttpException(
+          exceptionMessagesAuth.THIS_EAMIL_DOES_NOT_EXIST,
+          400,
+        );
+      }
+
+      const { id: userId, password: userPassword, role: userRole } = user;
+      const isCompare = await this.compareData({
         dataNeedTohash: password,
         hashedData: userPassword,
       });
 
-      if (!userId) {
+      if (!isCompare) {
         throw new HttpException(
-          exceptionMessagesAuth.THIS_EAMIL_DOES_NOT_EXIST,
+          exceptionMessagesAuth.PASSWORD_DOES_NOT_MATCH,
           400,
         );
       }
@@ -176,21 +180,8 @@ export class AuthService {
   async compareData({
     dataNeedTohash,
     hashedData,
-  }: DataToCompare): Promise<CompareDataResponse> {
-    const compare = await bcrpyt.compare(dataNeedTohash, hashedData);
-
-    if (!compare) {
-      throw new HttpException(
-        exceptionMessagesAuth.COMPARE_DATA_RETURN_FALSE,
-        400,
-      );
-    }
-
-    const response: CompareDataResponse = {
-      isCompareResponse: true,
-    };
-
-    return response;
+  }: DataToCompare): Promise<boolean> {
+    return await bcrpyt.compare(dataNeedTohash, hashedData);
   }
 
   async hashData({ dataNeedTohash }: DataToHash): Promise<HashDataResponse> {

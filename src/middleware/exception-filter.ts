@@ -20,11 +20,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     const statusCode = (exception as HttpException).getStatus();
-    const response = (exception as HttpException).getResponse();
+    const response = (exception as HttpException).getResponse()?.['response'];
+
     const log = {
       statusCode,
-      message: response['message'],
-      code: response['code'],
+      message: response?.['message'] || '정의되지 않은 Error Message',
+      code: response?.['code'] || '정의되지 않은 Error Code',
     };
 
     res.status(statusCode).json(log);
