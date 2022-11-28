@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Post,
-  UseGuards,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { GetCurrentUser } from '../../common/decorator/auth.decorator';
 import { AccessTokenGuard, RefreshTokenGuard } from './jwt/jwt.guard';
@@ -25,15 +18,13 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('sign-up')
-  async signUp(
-    @Body(ValidationPipe) authCreateDto: AuthCreateDto,
-  ): Promise<Account> {
+  async signUp(@Body() authCreateDto: AuthCreateDto): Promise<Account> {
     return await this.authService.signUp(authCreateDto);
   }
 
   @Post('sign-in')
   async signIn(
-    @Body(ValidationPipe) authSignInDto: SignInDto,
+    @Body() authSignInDto: SignInDto,
   ): Promise<AuthVerificationToken> {
     return await this.authService.signIn(authSignInDto);
   }
@@ -44,7 +35,7 @@ export class AuthController {
     await this.authService.signOut(userId);
   }
 
-  @UseGuards(RefreshTokenGuard)
+  @UseGuards(AccessTokenGuard, RefreshTokenGuard)
   @Post('recreate/access-token')
   async recreateAccessToken(
     @GetCurrentUser() { userId }: UserIdentifier,

@@ -3,11 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersRepository } from 'src/app/users/users.repository';
-import { UsersService } from 'src/app/users/users.service';
 import { JwtPayloadType } from '../../../common/interface/auth.interface';
-import * as bcrpyt from 'bcrypt';
 import { AuthRepository } from '../auth.repository';
 import { exceptionMessagesAuth } from 'src/common/exceptionMessage';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -17,7 +16,6 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      passReqToCallback: true,
       secretOrKey: configService.get('JWT_ACCESS_TOKEN_SECRET'),
     });
   }
@@ -40,26 +38,34 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(
     private readonly configService: ConfigService,
+    private readonly authService: AuthService,
     private readonly authRepository: AuthRepository,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request: any) => {
+          const refreshToken: string = request?.body?.['refreshToken'];
+          const decryptedRefreshToken =
+            this.authService.decryptData(refreshToken);
+
+          return decryptedRefreshToken;
+        },
+      ]),
       secretOrKey: configService.get('JWT_REFRESH_TOKEN_SECRET'),
       passReqToCallback: true,
     });
   }
 
-  async validate(req, payload: JwtPayloadType) {
+  async validate(req, { sub, role }: JwtPayloadType) {
     const reqRefreshToken = req.body.refreshToken;
-    const userRefreshToken = await this.authRepository.findRefreshToken(
-      payload.sub,
-    );
+    const decryptedRefreshToken = this.authService.decryptData(reqRefreshToken);
+    const userRefreshToken = await this.authRepository.findRefreshToken(sub);
 
     if (
       userRefreshToken &&
-      (await bcrpyt.compare(reqRefreshToken, userRefreshToken.refreshToken))
+      userRefreshToken.refreshToken === decryptedRefreshToken
     ) {
-      return payload.sub;
+      return sub;
     } else {
       throw new UnauthorizedException(exceptionMessagesAuth.UNVERIFIED_TOKEN);
     }

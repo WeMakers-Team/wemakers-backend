@@ -5,8 +5,6 @@ import { RefreshToken, User } from '@prisma/client';
 import { UsersRepository } from '../users/users.repository';
 import {
   AuthCreateDto,
-  DataToCompare,
-  DataToHash,
   SignInDto,
   UserIdentifier,
   UserInfoToCreateToken,
@@ -16,13 +14,12 @@ import {
   AuthAccessToken,
   AuthRefreshToken,
   AuthVerificationToken,
-  CompareDataResponse,
-  HashDataResponse,
   JwtPayloadType,
 } from '../../common/interface/auth.interface';
 import { AuthRepository } from './auth.repository';
-import * as bcrpyt from 'bcrypt';
 import { exceptionMessagesAuth } from 'src/common/exceptionMessage/';
+
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -36,7 +33,7 @@ export class AuthService {
   async signUp(authCreateDto: AuthCreateDto): Promise<Account> {
     try {
       const { password } = authCreateDto;
-      const { hashedData } = await this.hashData({ dataNeedTohash: password });
+      const hashedData = this.encryptData(password);
 
       const { password: newUserpassword, ...response } =
         await this.usersRepository.createUser(authCreateDto, hashedData);
@@ -65,19 +62,14 @@ export class AuthService {
       }
 
       const { id: userId, password: userPassword, role: userRole } = user;
-      const isCompare = await this.compareData({
-        dataNeedTohash: password,
-        hashedData: userPassword,
-      });
-
-      if (!isCompare) {
+      if (this.encryptData(password) !== userPassword) {
         throw new HttpException(
           exceptionMessagesAuth.PASSWORD_DOES_NOT_MATCH,
           400,
         );
       }
 
-      const { accessToken } = this.createAccessToken({
+      const { accessToken } = await this.createAccessToken({
         userId,
         role: userRole,
       });
@@ -107,7 +99,7 @@ export class AuthService {
 
   async recreateAccessToken(userId: number): Promise<AuthAccessToken> {
     const { id, role } = await this.usersRepository.findUserByIdOrEmail(userId);
-    const { accessToken } = this.createAccessToken({ userId: id, role });
+    const { accessToken } = await this.createAccessToken({ userId: id, role });
 
     const response: AuthAccessToken = {
       accessToken,
@@ -116,19 +108,24 @@ export class AuthService {
     return response;
   }
 
-  private createAccessToken({
+  protected async createAccessToken({
     userId,
     role,
-  }: UserInfoToCreateToken): AuthAccessToken {
+  }: UserInfoToCreateToken): Promise<AuthAccessToken> {
     const tokenPayload: JwtPayloadType = {
       sub: userId,
       role,
     };
 
-    const accessToken: string = this.jwtService.sign(tokenPayload, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-      expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
-    });
+    const accessToken: string = await this.jwtService
+      .signAsync(tokenPayload, {
+        secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+        expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new HttpException(exceptionMessagesAuth.FAILED_CREATE_TOKEN, 400);
+      });
 
     const response = {
       accessToken,
@@ -137,7 +134,7 @@ export class AuthService {
     return response;
   }
 
-  private async createRefreshToken({
+  protected async createRefreshToken({
     userId,
     role,
   }: UserInfoToCreateToken): Promise<AuthRefreshToken> {
@@ -146,26 +143,22 @@ export class AuthService {
       role,
     };
 
-    const refreshToken: string = this.jwtService.sign(tokenPayload, {
-      secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-      expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
-    });
+    const refreshToken: string = await this.jwtService
+      .signAsync(tokenPayload, {
+        secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new HttpException(exceptionMessagesAuth.FAILED_CREATE_TOKEN, 400);
+      });
 
-    if (!refreshToken) {
-      throw new HttpException(
-        exceptionMessagesAuth.REFRESH_TOKEN_DOES_NOT_EXIST,
-        400,
-      );
-    }
-
-    const { hashedData } = await this.hashData({
-      dataNeedTohash: refreshToken,
-    });
+    const hashedData = this.encryptData(refreshToken);
 
     try {
       await this.authRepository.createRefreshTokenHash(userId, hashedData);
       const response: AuthRefreshToken = {
-        refreshToken,
+        refreshToken: hashedData,
       };
       return response;
     } catch (err) {
@@ -177,20 +170,37 @@ export class AuthService {
     return await this.authRepository.findRefreshToken(userId);
   }
 
-  async compareData({
-    dataNeedTohash,
-    hashedData,
-  }: DataToCompare): Promise<boolean> {
-    return await bcrpyt.compare(dataNeedTohash, hashedData);
+  // crypto
+  protected readonly ENCRYPT_PASSWORD = 'password'; // 임시
+  protected readonly ENCRYPT_KEY = crypto.scryptSync(
+    this.ENCRYPT_PASSWORD,
+    'GfG',
+    32,
+  );
+  protected readonly ENCRYPT_IV = Buffer.alloc(16, 0);
+
+  encryptData(dataNeedTohash: string): string {
+    const cipher = crypto.createCipheriv(
+      'aes-256-cbc',
+      this.ENCRYPT_KEY,
+      this.ENCRYPT_IV,
+    );
+    let encrypted = cipher.update(dataNeedTohash);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+    return encrypted.toString('hex');
   }
 
-  async hashData({ dataNeedTohash }: DataToHash): Promise<HashDataResponse> {
-    const salt = await bcrpyt.genSalt();
-    const hashedData: string = await bcrpyt.hash(dataNeedTohash, salt);
+  decryptData(hashedData: string): string {
+    const encryptedText = Buffer.from(hashedData, 'hex');
+    const decipher = crypto.createDecipheriv(
+      'aes-256-cbc',
+      Buffer.from(this.ENCRYPT_KEY),
+      this.ENCRYPT_IV,
+    );
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
 
-    const response: HashDataResponse = {
-      hashedData,
-    };
-    return response;
+    return decrypted.toString();
   }
 }
