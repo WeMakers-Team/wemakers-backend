@@ -24,8 +24,8 @@
     "code": "PASSWORD_DOES_NOT_MATCH"
   },
 
-  "REFRESH_TOKEN_DOES_NOT_EXIST": {
-    "message": "리프레시 토큰이 존재하지 않습니다",
-    "code": "REFRESH_TOKEN_DOES_NOT_EXIST"
+  "FAILED_CREATE_TOKEN": {
+    "message": "토큰을 생성하지 못했습니다.",
+    "code": "FAILED_CREATE_TOKEN"
   }
 }

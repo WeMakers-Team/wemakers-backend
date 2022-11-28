@@ -69,7 +69,7 @@ export class AuthService {
         );
       }
 
-      const { accessToken } = this.createAccessToken({
+      const { accessToken } = await this.createAccessToken({
         userId,
         role: userRole,
       });
@@ -99,7 +99,7 @@ export class AuthService {
 
   async recreateAccessToken(userId: number): Promise<AuthAccessToken> {
     const { id, role } = await this.usersRepository.findUserByIdOrEmail(userId);
-    const { accessToken } = this.createAccessToken({ userId: id, role });
+    const { accessToken } = await this.createAccessToken({ userId: id, role });
 
     const response: AuthAccessToken = {
       accessToken,
@@ -108,19 +108,24 @@ export class AuthService {
     return response;
   }
 
-  protected createAccessToken({
+  protected async createAccessToken({
     userId,
     role,
-  }: UserInfoToCreateToken): AuthAccessToken {
+  }: UserInfoToCreateToken): Promise<AuthAccessToken> {
     const tokenPayload: JwtPayloadType = {
       sub: userId,
       role,
     };
 
-    const accessToken: string = this.jwtService.sign(tokenPayload, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-      expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
-    });
+    const accessToken: string = await this.jwtService
+      .signAsync(tokenPayload, {
+        secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+        expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new HttpException(exceptionMessagesAuth.FAILED_CREATE_TOKEN, 400);
+      });
 
     const response = {
       accessToken,
@@ -138,22 +143,20 @@ export class AuthService {
       role,
     };
 
-    const refreshToken: string = this.jwtService.sign(tokenPayload, {
-      secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-      expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
-    });
-
-    if (!refreshToken) {
-      throw new HttpException(
-        exceptionMessagesAuth.REFRESH_TOKEN_DOES_NOT_EXIST,
-        400,
-      );
-    }
+    const refreshToken: string = await this.jwtService
+      .signAsync(tokenPayload, {
+        secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new HttpException(exceptionMessagesAuth.FAILED_CREATE_TOKEN, 400);
+      });
 
     const hashedData = this.encryptData(refreshToken);
 
     try {
-      // await this.authRepository.createRefreshTokenHash(userId, hashedData);
+      await this.authRepository.createRefreshTokenHash(userId, hashedData);
       const response: AuthRefreshToken = {
         refreshToken: hashedData,
       };
