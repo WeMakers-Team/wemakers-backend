@@ -23,8 +23,12 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
     const statusCode = response?.statusCode;
     const message = 'ok';
 
-    return next
-      .handle()
-      .pipe(map((result) => ({ statusCode, message, result })));
+    return next.handle().pipe(
+      map((result) => ({
+        statusCode,
+        message,
+        result,
+      })),
+    );
   }
 }

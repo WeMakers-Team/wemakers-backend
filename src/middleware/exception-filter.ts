@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { exceptionMessagesAuth } from '../exceptionMessage';
+import * as exceptionMessagesAuth from '../common/exceptionMessage/exception-message-auth.json';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {

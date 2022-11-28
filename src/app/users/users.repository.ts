@@ -5,15 +5,13 @@ export class UsersRepository {
   prisma = new PrismaClient();
 
   async createUser(
-    authCreateDto: AuthCreateDto,
+    { password, ...dto }: AuthCreateDto,
     hashedPassword: string,
   ): Promise<User> {
     const newUser = await this.prisma.user.create({
       data: {
-        name: authCreateDto.name,
-        email: authCreateDto.email,
         password: hashedPassword,
-        role: authCreateDto.role,
+        ...dto,
       },
     });
     return newUser;

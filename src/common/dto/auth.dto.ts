@@ -1,27 +1,25 @@
 import { BadRequestException } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
+import { PickType } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsString,
   Matches,
 } from 'class-validator';
 
 export class AuthCreateDto {
-  @ApiProperty({ description: '이메일' })
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
-  @ApiProperty({ description: '이름' })
   @IsNotEmpty()
   @IsString()
   name: string;
 
-  @ApiProperty({ description: '비밀번호' })
   @IsNotEmpty()
   @IsString()
   @Matches(/^[a-zA-Z0-9]*$/, {
@@ -29,7 +27,6 @@ export class AuthCreateDto {
   })
   password: string;
 
-  @ApiProperty({ description: '비밀번호 확인' })
   @Transform(({ value, obj }) => {
     if (value !== obj.password) {
       throw new BadRequestException('password mismatched');
@@ -40,7 +37,6 @@ export class AuthCreateDto {
   @IsString()
   checkPassword: string;
 
-  @ApiProperty({ description: ' "MENTOR" or "MENTEE" ' })
   @IsNotEmpty()
   @IsEnum(Role, {
     message: 'type only accepts enum values',
@@ -48,20 +44,32 @@ export class AuthCreateDto {
   role: Role;
 }
 
-export class AuthSignInDto {
-  @ApiProperty({ description: '이메일' })
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
+export class SignInDto extends PickType(AuthCreateDto, [
+  'email',
+  'password',
+] as const) {}
 
-  @ApiProperty({ description: '비밀번호' })
+export class UserIdentifier {
+  @IsNumber()
   @IsNotEmpty()
-  @IsString()
-  password: string;
+  userId: number;
 }
 
-export class TokenDto {
-  @ApiProperty({ description: 'refresh token' })
+export class UserInfoToCreateToken extends UserIdentifier {
+  @IsEnum(Role, {
+    message: 'type only accepts enum values',
+  })
+  role: Role;
+}
+
+export class DataToHash {
   @IsString()
-  refreshToken: string;
+  @IsNotEmpty()
+  dataNeedTohash: string;
+}
+
+export class DataToCompare extends DataToHash {
+  @IsString()
+  @IsNotEmpty()
+  hashedData: string;
 }

@@ -26,7 +26,7 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     const user = await this.userRepository.findUserByIdOrEmail(payload.sub);
 
     if (user) {
-      return user;
+      return user.id;
     } else {
       throw new UnauthorizedException(exceptionMessagesAuth.UNVERIFIED_TOKEN);
     }
@@ -59,7 +59,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
       userRefreshToken &&
       (await bcrpyt.compare(reqRefreshToken, userRefreshToken.refreshToken))
     ) {
-      return payload;
+      return payload.sub;
     } else {
       throw new UnauthorizedException(exceptionMessagesAuth.UNVERIFIED_TOKEN);
     }
