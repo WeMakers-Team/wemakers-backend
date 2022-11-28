@@ -61,15 +61,3 @@ export class UserInfoToCreateToken extends UserIdentifier {
   })
   role: Role;
 }
-
-export class DataToHash {
-  @IsString()
-  @IsNotEmpty()
-  dataNeedTohash: string;
-}
-
-export class DataToCompare extends DataToHash {
-  @IsString()
-  @IsNotEmpty()
-  hashedData: string;
-}

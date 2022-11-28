@@ -5,8 +5,6 @@ import { RefreshToken, User } from '@prisma/client';
 import { UsersRepository } from '../users/users.repository';
 import {
   AuthCreateDto,
-  DataToCompare,
-  DataToHash,
   SignInDto,
   UserIdentifier,
   UserInfoToCreateToken,
@@ -16,13 +14,12 @@ import {
   AuthAccessToken,
   AuthRefreshToken,
   AuthVerificationToken,
-  CompareDataResponse,
-  HashDataResponse,
   JwtPayloadType,
 } from '../../common/interface/auth.interface';
 import { AuthRepository } from './auth.repository';
-import * as bcrpyt from 'bcrypt';
 import { exceptionMessagesAuth } from 'src/common/exceptionMessage/';
+
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -36,7 +33,7 @@ export class AuthService {
   async signUp(authCreateDto: AuthCreateDto): Promise<Account> {
     try {
       const { password } = authCreateDto;
-      const { hashedData } = await this.hashData({ dataNeedTohash: password });
+      const hashedData = this.encryptData(password);
 
       const { password: newUserpassword, ...response } =
         await this.usersRepository.createUser(authCreateDto, hashedData);
@@ -65,12 +62,7 @@ export class AuthService {
       }
 
       const { id: userId, password: userPassword, role: userRole } = user;
-      const isCompare = await this.compareData({
-        dataNeedTohash: password,
-        hashedData: userPassword,
-      });
-
-      if (!isCompare) {
+      if (this.encryptData(password) !== userPassword) {
         throw new HttpException(
           exceptionMessagesAuth.PASSWORD_DOES_NOT_MATCH,
           400,
@@ -116,7 +108,7 @@ export class AuthService {
     return response;
   }
 
-  private createAccessToken({
+  protected createAccessToken({
     userId,
     role,
   }: UserInfoToCreateToken): AuthAccessToken {
@@ -137,7 +129,7 @@ export class AuthService {
     return response;
   }
 
-  private async createRefreshToken({
+  protected async createRefreshToken({
     userId,
     role,
   }: UserInfoToCreateToken): Promise<AuthRefreshToken> {
@@ -158,14 +150,12 @@ export class AuthService {
       );
     }
 
-    const { hashedData } = await this.hashData({
-      dataNeedTohash: refreshToken,
-    });
+    const hashedData = this.encryptData(refreshToken);
 
     try {
-      await this.authRepository.createRefreshTokenHash(userId, hashedData);
+      // await this.authRepository.createRefreshTokenHash(userId, hashedData);
       const response: AuthRefreshToken = {
-        refreshToken,
+        refreshToken: hashedData,
       };
       return response;
     } catch (err) {
@@ -177,20 +167,37 @@ export class AuthService {
     return await this.authRepository.findRefreshToken(userId);
   }
 
-  async compareData({
-    dataNeedTohash,
-    hashedData,
-  }: DataToCompare): Promise<boolean> {
-    return await bcrpyt.compare(dataNeedTohash, hashedData);
+  // crypto
+  protected readonly ENCRYPT_PASSWORD = 'password'; // 임시
+  protected readonly ENCRYPT_KEY = crypto.scryptSync(
+    this.ENCRYPT_PASSWORD,
+    'GfG',
+    32,
+  );
+  protected readonly ENCRYPT_IV = Buffer.alloc(16, 0);
+
+  encryptData(dataNeedTohash: string): string {
+    const cipher = crypto.createCipheriv(
+      'aes-256-cbc',
+      this.ENCRYPT_KEY,
+      this.ENCRYPT_IV,
+    );
+    let encrypted = cipher.update(dataNeedTohash);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+    return encrypted.toString('hex');
   }
 
-  async hashData({ dataNeedTohash }: DataToHash): Promise<HashDataResponse> {
-    const salt = await bcrpyt.genSalt();
-    const hashedData: string = await bcrpyt.hash(dataNeedTohash, salt);
+  decryptData(hashedData: string): string {
+    const encryptedText = Buffer.from(hashedData, 'hex');
+    const decipher = crypto.createDecipheriv(
+      'aes-256-cbc',
+      Buffer.from(this.ENCRYPT_KEY),
+      this.ENCRYPT_IV,
+    );
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
 
-    const response: HashDataResponse = {
-      hashedData,
-    };
-    return response;
+    return decrypted.toString();
   }
 }
