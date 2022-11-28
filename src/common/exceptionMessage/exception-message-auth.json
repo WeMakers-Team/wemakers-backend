@@ -15,7 +15,7 @@
   },
 
   "THIS_EAMIL_DOES_NOT_EXIST": {
-    "message": "해당 이메일은 존재하지 않습니다",
+    "message": "이메일과 비밀번호를 다시 확인해주세요.",
     "code": "THIS_EAMIL_DOES_NOT_EXIST"
   },
 
@@ -27,10 +27,5 @@
   "REFRESH_TOKEN_DOES_NOT_EXIST": {
     "message": "리프레시 토큰이 존재하지 않습니다",
     "code": "REFRESH_TOKEN_DOES_NOT_EXIST"
-  },
-
-  "COMPARE_DATA_RETURN_FALSE": {
-    "message": "비교 데이터가 서로 일치하지 않습니다",
-    "code": "COMPARE_DATA_RETURN_FALSE"
   }
 }
