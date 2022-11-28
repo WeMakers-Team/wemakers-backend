@@ -1,126 +1,196 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Prisma, Role } from '@prisma/client';
-import { error } from 'console';
-import { AuthCreateDto } from './dto/auth.dto';
-import { AuthInterface } from './interface/auth.interface';
-import * as bcrpyt from 'bcrypt';
+import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { RefreshToken, User } from '@prisma/client';
 import { UsersRepository } from '../users/users.repository';
-import { UsersService } from '../users/users.service';
+import {
+  AuthCreateDto,
+  DataToCompare,
+  DataToHash,
+  SignInDto,
+  UserIdentifier,
+  UserInfoToCreateToken,
+} from '../../common/dto/auth.dto';
+import {
+  Account,
+  AuthAccessToken,
+  AuthRefreshToken,
+  AuthVerificationToken,
+  CompareDataResponse,
+  HashDataResponse,
+  JwtPayloadType,
+} from '../../common/interface/auth.interface';
+import { AuthRepository } from './auth.repository';
+import * as bcrpyt from 'bcrypt';
+import { exceptionMessagesAuth } from 'src/common/exceptionMessage/';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
-    private usersService: UsersService,
     private usersRepository: UsersRepository,
+    private authRepository: AuthRepository,
   ) {}
 
-  async signUp(userDto: AuthCreateDto): Promise<AuthInterface> {
+  async signUp(authCreateDto: AuthCreateDto): Promise<Account> {
     try {
-      const hashedPassword = await this.hashData(userDto.password);
-      const newUser = await this.usersRepository.createUser(
-        userDto,
-        hashedPassword,
-      );
-      return {
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-      };
+      const { password } = authCreateDto;
+      const { hashedData } = await this.hashData({ dataNeedTohash: password });
+
+      const { password: newUserpassword, ...response } =
+        await this.usersRepository.createUser(authCreateDto, hashedData);
+
+      return response;
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        throw new InternalServerErrorException('this Email already exists');
-      } else if (error.code === 'P2002') {
-        throw new ConflictException('this Email already exists');
+      if (error.code === 'P2002') {
+        throw new HttpException(
+          exceptionMessagesAuth.THIS_USER_ALREADY_EXISTS,
+          400,
+        );
       }
-    }
-    throw error;
-  }
-
-  async signIn(
-    userDto: AuthCreateDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.usersService.getUser(userDto.email);
-
-    if (user && (await this.compareData(userDto.password, user.password))) {
-      const accessToken = await this.createAccessToken(user.id, user.role);
-      const refreshToken = await this.createRefreshTokens(user.id, user.role);
-      return {
-        accessToken,
-        refreshToken,
-      };
-    } else {
-      throw new UnauthorizedException('login failed');
+      throw new HttpException(error, 400);
     }
   }
 
-  async signOut(userId: number) {
-    await this.usersRepository.deleteRefreshToken(userId);
+  async signIn({ email, password }: SignInDto): Promise<AuthVerificationToken> {
+    try {
+      const user = await this.usersRepository.findUserByIdOrEmail(email);
+
+      if (!user) {
+        throw new HttpException(
+          exceptionMessagesAuth.THIS_EAMIL_DOES_NOT_EXIST,
+          400,
+        );
+      }
+
+      const { id: userId, password: userPassword, role: userRole } = user;
+      const isCompare = await this.compareData({
+        dataNeedTohash: password,
+        hashedData: userPassword,
+      });
+
+      if (!isCompare) {
+        throw new HttpException(
+          exceptionMessagesAuth.PASSWORD_DOES_NOT_MATCH,
+          400,
+        );
+      }
+
+      const { accessToken } = this.createAccessToken({
+        userId,
+        role: userRole,
+      });
+
+      const { refreshToken } = await this.createRefreshToken({
+        userId: userId,
+        role: userRole,
+      });
+
+      const response: AuthVerificationToken = { accessToken, refreshToken };
+      return response;
+    } catch (error) {
+      throw new HttpException(error, 400);
+    }
   }
 
-  async recreateRefreshToken(
-    userId: number,
-    refreshToken: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.usersService.getUser(userId);
-
-    if (!user) throw new UnauthorizedException('Access Denied');
-
-    const rtMatches = this.compareData(refreshToken, user.refreshToken);
-    if (!rtMatches) throw new UnauthorizedException('Access Denied');
-
-    const accessToken = await this.createAccessToken(user.id, user.role);
-
-    return { accessToken, refreshToken };
+  async signOut(userId: number): Promise<void> {
+    try {
+      const { id: tokenId } = await this.authRepository.findRefreshToken(
+        userId,
+      );
+      await this.authRepository.deleteRefreshToken(tokenId);
+    } catch (error) {
+      throw new HttpException(error, 400);
+    }
   }
 
-  async createAccessToken(userId: number, role: Role): Promise<string> {
-    const tokenPayload = {
-      id: userId,
-      role: role,
+  async recreateAccessToken(userId: number): Promise<AuthAccessToken> {
+    const { id, role } = await this.usersRepository.findUserByIdOrEmail(userId);
+    const { accessToken } = this.createAccessToken({ userId: id, role });
+
+    const response: AuthAccessToken = {
+      accessToken,
     };
 
-    const accessToken = await this.jwtService.sign(tokenPayload, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+    return response;
+  }
+
+  private createAccessToken({
+    userId,
+    role,
+  }: UserInfoToCreateToken): AuthAccessToken {
+    const tokenPayload: JwtPayloadType = {
+      sub: userId,
+      role,
+    };
+
+    const accessToken: string = this.jwtService.sign(tokenPayload, {
+      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
     });
 
-    return accessToken;
-  }
-
-  async createRefreshTokens(userId: number, role: Role): Promise<string> {
-    const tokenPayload = {
-      id: userId,
-      role: role,
+    const response = {
+      accessToken,
     };
 
-    const refreshToken = this.jwtService.sign(tokenPayload, {
+    return response;
+  }
+
+  private async createRefreshToken({
+    userId,
+    role,
+  }: UserInfoToCreateToken): Promise<AuthRefreshToken> {
+    const tokenPayload: JwtPayloadType = {
+      sub: userId,
+      role,
+    };
+
+    const refreshToken: string = this.jwtService.sign(tokenPayload, {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
       expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
     });
 
-    const hashToken = await this.hashData(refreshToken);
-    console.log('refreshToken type', typeof refreshToken);
-    await this.usersRepository.updateRefreshTokenHash(userId, hashToken);
+    if (!refreshToken) {
+      throw new HttpException(
+        exceptionMessagesAuth.REFRESH_TOKEN_DOES_NOT_EXIST,
+        400,
+      );
+    }
 
-    return refreshToken;
+    const { hashedData } = await this.hashData({
+      dataNeedTohash: refreshToken,
+    });
+
+    try {
+      await this.authRepository.createRefreshTokenHash(userId, hashedData);
+      const response: AuthRefreshToken = {
+        refreshToken,
+      };
+      return response;
+    } catch (err) {
+      throw new HttpException(err, 400);
+    }
   }
 
-  async compareData(original: string, hashData: string) {
-    return await bcrpyt.compare(original, hashData);
+  async findRefreshToken({ userId }: UserIdentifier): Promise<RefreshToken> {
+    return await this.authRepository.findRefreshToken(userId);
   }
 
-  async hashData(data: string): Promise<string> {
+  async compareData({
+    dataNeedTohash,
+    hashedData,
+  }: DataToCompare): Promise<boolean> {
+    return await bcrpyt.compare(dataNeedTohash, hashedData);
+  }
+
+  async hashData({ dataNeedTohash }: DataToHash): Promise<HashDataResponse> {
     const salt = await bcrpyt.genSalt();
-    const hash = await bcrpyt.hash(data, salt);
-    return hash;
+    const hashedData: string = await bcrpyt.hash(dataNeedTohash, salt);
+
+    const response: HashDataResponse = {
+      hashedData,
+    };
+    return response;
   }
 }

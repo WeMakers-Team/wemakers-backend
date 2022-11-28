@@ -19,9 +19,14 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "start:pm2:product": "cross-env NODE_ENV=prod pm2 start dist/main.js",
+    "start:pm2:dev": "cross-env NODE_ENV=dev pm2 start dist/main.js",
+    "start:pm2:prod": "cross-env NODE_ENV=prod pm2 start dist/main.js",
     "prismix": "npx prismix && prisma format",
-    "dev": "yarn prismix && ts-node server.ts"
+    "dev": "yarn prismix && ts-node server.ts",
+    "migrate:dev": "dotenv -e .env.dev -- yarn prisma migrate dev",
+    "migrate:prod": "dotenv -e .env.prod -- yarn prisma migrate dev",
+    "push:dev": "dotenv -e .env.dev -- yarn prisma db push",
+    "push:prod": "dotenv -e .env.prod -- yarn prisma db push"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
@@ -39,6 +44,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
     "cross-env": "^7.0.3",
+    "dotenv-cli": "^6.0.0",
     "joi": "^17.6.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",

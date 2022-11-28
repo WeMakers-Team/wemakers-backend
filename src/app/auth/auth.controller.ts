@@ -1,58 +1,54 @@
 import {
   Body,
   Controller,
+  Delete,
   Post,
-  Req,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { AccessTokenGuard } from './common/guard/access-token.guard';
-import { RefreshTokenGuadrd } from './common/guard/refresh-token.guard';
-import { GetCurrentUserId } from './common/decorator/get-current-user-id.decorator';
-import { Request } from 'express';
-import { AuthInterface } from './interface/auth.interface';
-import { AuthCreateDto } from './dto/auth.dto';
+import { GetCurrentUser } from '../../common/decorator/auth.decorator';
+import { AccessTokenGuard, RefreshTokenGuard } from './jwt/jwt.guard';
+import {
+  AuthCreateDto,
+  SignInDto,
+  UserIdentifier,
+} from '../../common/dto/auth.dto';
+import {
+  Account,
+  AuthAccessToken,
+  AuthVerificationToken,
+} from 'src/common/interface/auth.interface';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @ApiOperation({ summary: '사용자 회원 가입' })
-  @ApiResponse({ status: 200, description: ' sign up user' })
   @Post('sign-up')
-  signUp(
-    @Body(ValidationPipe) createUserDto: AuthCreateDto,
-  ): Promise<AuthInterface> {
-    return this.authService.signUp(createUserDto);
+  async signUp(
+    @Body(ValidationPipe) authCreateDto: AuthCreateDto,
+  ): Promise<Account> {
+    return await this.authService.signUp(authCreateDto);
   }
 
-  @ApiOperation({ summary: '사용자 로그인' })
-  @ApiResponse({ status: 200, description: ' sign in user' })
   @Post('sign-in')
-  signIn(
-    @Body(ValidationPipe) userDto: AuthCreateDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    return this.authService.signIn(userDto);
+  async signIn(
+    @Body(ValidationPipe) authSignInDto: SignInDto,
+  ): Promise<AuthVerificationToken> {
+    return await this.authService.signIn(authSignInDto);
   }
 
-  @ApiOperation({ summary: '사용자 로그아웃' })
-  @ApiResponse({ status: 200, description: ' sign out user' })
   @UseGuards(AccessTokenGuard)
-  @Post('sign-out')
-  signOut(@GetCurrentUserId() userId: number) {
-    return this.authService.signOut(userId);
+  @Delete('sign-out')
+  async signOut(@GetCurrentUser() { userId }: UserIdentifier): Promise<void> {
+    await this.authService.signOut(userId);
   }
 
-  @UseGuards(RefreshTokenGuadrd)
-  @Post('refresh-token')
-  recreateRefreshToken(
-    @GetCurrentUserId() userId: number,
-    @Req() req: Request,
-  ) {
-    console.log('req', req);
-    const token = req.get('authorization');
-    return this.authService.recreateRefreshToken(userId, token);
+  @UseGuards(RefreshTokenGuard)
+  @Post('recreate/access-token')
+  async recreateAccessToken(
+    @GetCurrentUser() { userId }: UserIdentifier,
+  ): Promise<AuthAccessToken> {
+    return await this.authService.recreateAccessToken(userId);
   }
 }

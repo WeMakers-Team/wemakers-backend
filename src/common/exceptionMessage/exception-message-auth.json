@@ -1,0 +1,31 @@
+{
+  "NOT_FOUND_USER": {
+    "message": "테스트용 exception message",
+    "code": "00001"
+  },
+
+  "UNVERIFIED_TOKEN": {
+    "message": "유효하지 않은 토큰 입니다",
+    "code": "UNVERIFIED_TOKEN"
+  },
+
+  "THIS_USER_ALREADY_EXISTS": {
+    "message": "해당 유저는 이미 회원가입 되어 있습니다",
+    "code": "THIS_USER_ALREADY_EXISTS"
+  },
+
+  "THIS_EAMIL_DOES_NOT_EXIST": {
+    "message": "이메일과 비밀번호를 다시 확인해주세요.",
+    "code": "THIS_EAMIL_DOES_NOT_EXIST"
+  },
+
+  "PASSWORD_DOES_NOT_MATCH": {
+    "message": "비밀번호가 일치하지 않습니다",
+    "code": "PASSWORD_DOES_NOT_MATCH"
+  },
+
+  "REFRESH_TOKEN_DOES_NOT_EXIST": {
+    "message": "리프레시 토큰이 존재하지 않습니다",
+    "code": "REFRESH_TOKEN_DOES_NOT_EXIST"
+  }
+}
