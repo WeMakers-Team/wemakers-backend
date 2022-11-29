@@ -12,6 +12,7 @@ import * as exceptionMessagesAuth from '../common/exceptionMessage/exception-mes
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
+    console.error(exception);
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
 
@@ -20,12 +21,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     const statusCode = (exception as HttpException).getStatus();
-    const response = (exception as HttpException).getResponse()?.['response'];
+    const response = (exception as HttpException).getResponse();
+    const errorRes = response?.['stack'] ? response?.['response'] : response;
 
     const log = {
       statusCode,
-      message: response?.['message'] || '정의되지 않은 Error Message',
-      code: response?.['code'] || '정의되지 않은 Error Code',
+      message: errorRes?.['message'],
+      code: errorRes?.['code'],
     };
 
     res.status(statusCode).json(log);
