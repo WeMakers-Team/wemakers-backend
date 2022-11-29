@@ -1,21 +1,68 @@
-model User {
-  id           Int           @id @default(autoincrement())
-  name         String
-  email        String        @unique
-  password     String
-  role         Role          @default(MENTEE)
-  refreshToken RefreshToken?
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
-  @@map("users")
+model Account {
+  id           Int      @id @default(autoincrement())
+  nickName     String
+  email        String   @unique
+  password     String
+  profilePhoto String?
+  introduce    String? // 한 줄 소개 글
+  role         Role     @default(MENTEE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  RefreshToken  RefreshToken?  @relation(name: "AccountRefreshToken") // 1:1
+  MentorProfile MentorProfile? @relation(name: "MentorAccount") // 1:1
+
+  @@map("accounts")
 }
 
 model RefreshToken {
-  id           Int    @id @default(autoincrement())
-  refreshToken String @default("")
-  user         User   @relation(fields: [userId], references: [id])
-  userId       Int    @unique
+  id           Int      @id @default(autoincrement())
+  refreshToken String   @default("")
+  account      Account  @relation(name: "AccountRefreshToken", fields: [accountId], references: [id])
+  accountId    Int      @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("refresh_tokens")
+}
+
+model MentorProfile {
+  id              Int      @id @default(autoincrement())
+  mentorIntroduce String   @db.VarChar(100) // 100자 소개
+  portfolioLink   String?
+  major           String? // 직무
+  account         Account  @relation(name: "MentorAccount", fields: [accountId], references: [id])
+  accountId       Int      @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  ProtFolioImg ProtFolioImg[] @relation(name: "MentorPortfolioImg")
+  Skill        Skill[]        @relation(name: "MentorSkill")
+
+  @@map("mentor_profiles")
+}
+
+model ProtFolioImg {
+  id              Int           @id @default(autoincrement())
+  url             String
+  mentorProfile   MentorProfile @relation(name: "MentorPortfolioImg", fields: [mentorProfileId], references: [id])
+  mentorProfileId Int
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Skill {
+  id              Int           @id @default(autoincrement())
+  name            String
+  mentorProfile   MentorProfile @relation(name: "MentorSkill", fields: [mentorProfileId], references: [id])
+  mentorProfileId Int
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 enum Role {
