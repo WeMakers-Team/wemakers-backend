@@ -21,9 +21,10 @@ export class UsersRepository {
     return await this.prisma.account.findMany();
   }
 
-  async findUserByIdOrEmail(userData: number | string): Promise<Account> {
-    const whereOption =
-      typeof userData === 'number' ? { id: userData } : { email: userData };
+  async findUserByIdOrWhere(
+    where: number | { [key: string]: any },
+  ): Promise<Account> {
+    const whereOption = typeof where === 'number' ? { id: where } : where;
 
     const user = await this.prisma.account.findFirst({
       where: whereOption,
