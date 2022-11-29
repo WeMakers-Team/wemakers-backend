@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { RefreshToken, User } from '@prisma/client';
+import { RefreshToken } from '@prisma/client';
 import { UsersRepository } from '../users/users.repository';
 import {
   AuthCreateDto,

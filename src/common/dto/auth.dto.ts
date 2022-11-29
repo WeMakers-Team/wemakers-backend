@@ -30,7 +30,7 @@ export class AuthCreateDto {
 
   @IsNotEmpty({
     context: {
-      code: 'EMPTY_NAME',
+      code: 'EMPTY_NICKNAME',
     },
   })
   @IsString({
@@ -38,7 +38,7 @@ export class AuthCreateDto {
       code: 'MUST_STRING_TYPE',
     },
   })
-  name: string;
+  nickName: string;
 
   @IsNotEmpty({
     context: {
