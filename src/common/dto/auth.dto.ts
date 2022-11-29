@@ -92,6 +92,11 @@ export class AuthCreateDto {
   role: Role;
 }
 
+export class ValidateEmailDto extends PickType(AuthCreateDto, ['email']) {}
+export class ValidateNickNameDto extends PickType(AuthCreateDto, [
+  'nickName',
+]) {}
+
 export class SignInDto extends PickType(AuthCreateDto, [
   'email',
   'password',

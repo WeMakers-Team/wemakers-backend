@@ -9,6 +9,16 @@
     "code": "UNVERIFIED_TOKEN"
   },
 
+  "EMAIL_ALREADY_EXISTS": {
+    "message": "이미 존재하는 이메일 입니다.",
+    "code": "EMAIL_ALREADY_EXISTS"
+  },
+
+  "NICKNAME_ALREADY_EXISTS": {
+    "message": "이미 존재하는 닉네임 입니다.",
+    "code": "NICKNAME_ALREADY_EXISTS"
+  },
+
   "THIS_USER_ALREADY_EXISTS": {
     "message": "해당 유저는 이미 회원가입 되어 있습니다",
     "code": "THIS_USER_ALREADY_EXISTS"

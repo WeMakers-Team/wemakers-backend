@@ -6,6 +6,8 @@ import {
   AuthCreateDto,
   SignInDto,
   UserIdentifier,
+  ValidateEmailDto,
+  ValidateNickNameDto,
 } from '../../common/dto/auth.dto';
 import {
   Account,
@@ -16,6 +18,16 @@ import {
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  @Post('validate/email')
+  async validateEmail(dto: ValidateEmailDto) {
+    return await this.authService.validateEmail(dto);
+  }
+
+  @Post('validate/nickname')
+  async validateNickName(dto: ValidateNickNameDto) {
+    return await this.authService.validateNickName(dto);
+  }
 
   @Post('sign-up')
   async signUp(@Body() authCreateDto: AuthCreateDto): Promise<Account> {
