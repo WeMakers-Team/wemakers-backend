@@ -8,7 +8,7 @@ export class UsersService {
 
   async findUser(userId: number): Promise<Account> {
     const { password, ...response } =
-      await this.usersRepository.findUserByIdOrEmail(userId);
+      await this.usersRepository.findUserByIdOrWhere(userId);
 
     return response;
   }

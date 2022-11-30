@@ -3,10 +3,10 @@ import { PrismaClient, RefreshToken } from '@prisma/client';
 export class AuthRepository {
   prisma = new PrismaClient();
 
-  async findRefreshToken(userId: number): Promise<RefreshToken> {
+  async findRefreshToken(accountId: number): Promise<RefreshToken> {
     return await this.prisma.refreshToken.findFirst({
       where: {
-        userId,
+        accountId,
       },
     });
   }
@@ -19,12 +19,12 @@ export class AuthRepository {
     });
   }
 
-  async createRefreshTokenHash(userId: number, refreshToken: string) {
+  async createRefreshTokenHash(accountId: number, refreshToken: string) {
     await this.prisma.refreshToken.create({
       data: {
         refreshToken,
-        user: {
-          connect: { id: userId },
+        account: {
+          connect: { id: accountId },
         },
       },
     });
