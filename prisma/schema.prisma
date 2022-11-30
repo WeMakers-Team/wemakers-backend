@@ -45,7 +45,7 @@ model MentorProfile {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   ProtFolioImg    ProtFolioImg[] @relation(name: "MentorPortfolioImg")
-  Skill           Skill[]        @relation(name: "MentorSkill")
+  Skill           Skill[]        @relation(name: "MentorProfileToSkill")
 
   @@map("mentor_profiles")
 }
@@ -60,12 +60,11 @@ model ProtFolioImg {
 }
 
 model Skill {
-  id              Int           @id @default(autoincrement())
-  name            String
-  mentorProfile   MentorProfile @relation(name: "MentorSkill", fields: [mentorProfileId], references: [id])
-  mentorProfileId Int
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id            Int             @id @default(autoincrement())
+  name          String
+  mentorProfile MentorProfile[] @relation(name: "MentorProfileToSkill")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
 enum Role {
