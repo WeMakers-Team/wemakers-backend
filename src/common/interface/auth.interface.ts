@@ -1,4 +1,4 @@
-import { Role, User } from '@prisma/client';
+import { Role, Account as Account_ } from '@prisma/client';
 
 export type JwtPayloadType = {
   sub: number;
@@ -10,7 +10,7 @@ export interface AuthVerificationToken {
   refreshToken: string;
 }
 
-export type Account = Omit<User, 'password'>;
+export type Account = Omit<Account_, 'password'>;
 
 export type AuthAccessToken = Pick<AuthVerificationToken, 'accessToken'>;
 export type AuthRefreshToken = Pick<AuthVerificationToken, 'refreshToken'>;

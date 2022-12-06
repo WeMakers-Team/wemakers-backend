@@ -20,12 +20,12 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('validate/email')
-  async validateEmail(dto: ValidateEmailDto) {
+  async validateEmail(@Body() dto: ValidateEmailDto) {
     return await this.authService.validateEmail(dto);
   }
 
   @Post('validate/nickname')
-  async validateNickName(dto: ValidateNickNameDto) {
+  async validateNickName(@Body() dto: ValidateNickNameDto) {
     return await this.authService.validateNickName(dto);
   }
 

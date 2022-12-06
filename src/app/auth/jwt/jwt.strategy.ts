@@ -20,14 +20,12 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayloadType) {
-    const user = await this.userRepository.findUserByIdOrEmail(payload.sub);
+  async validate({ sub }: JwtPayloadType) {
+    const user = await this.userRepository.findUserByIdOrWhere(sub);
 
-    if (user) {
-      return user.id;
-    } else {
+    if (user) user.id;
+    else
       throw new UnauthorizedException(exceptionMessagesAuth.UNVERIFIED_TOKEN);
-    }
   }
 }
 
@@ -64,10 +62,9 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
     if (
       userRefreshToken &&
       userRefreshToken.refreshToken === decryptedRefreshToken
-    ) {
+    )
       return sub;
-    } else {
+    else
       throw new UnauthorizedException(exceptionMessagesAuth.UNVERIFIED_TOKEN);
-    }
   }
 }
