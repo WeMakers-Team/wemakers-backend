@@ -36,7 +36,7 @@ jobs:
         ehco "JWT_ACCESS_TOKEN_EXPIRATION_TIME=${{ secrets.EXPIRATION_TIME }}" >> .env.dev
         ehco "JWT_REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> .env.dev
         ehco "JWT_REFRESH_TOKEN_EXPIRATION_TIME=${{ secrets.EXPIRATION_TIME }}" >> .env.dev
-        cat .env
+        cat .env.dev
        
           
     - name: archive wemakers
