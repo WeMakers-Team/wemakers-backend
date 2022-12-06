@@ -29,24 +29,22 @@ jobs:
           
     - name: Make envfile
       env:
-        NODE_ENV: ${{ secrets.NODE_ENV }}
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        PROT: ${{ secrets.PROT }}
-        JWT_ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-        JWT_ACCESS_TOKEN_EXPIRATION_TIME: ${{ secrets.EXPIRATION_TIME }}
-        JWT_REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
-        JWT_REFRESH_TOKEN_EXPIRATION_TIME: ${{ secrets.EXPIRATION_TIME }}
+        NODE_ENV: ${{ secrets.NODE_ENV_WEMAKERS }}
+        DATABASE_URL: ${{ secrets.WEMAKERS_DATABASE_URL }}
+        PORT: ${{ secrets.WEMAKERS_DEV_PORT }}
+        JWT_ACCESS_TOKEN_SECRET: ${{ secrets.WEMAKERS_ACCESS_TOKEN_SECRET }}
+        JWT_ACCESS_TOKEN_EXPIRATION_TIME: ${{ secrets.WEMKERS_ACCESS_TOKEN_EXPIRATION_TIME }}
+        JWT_REFRESH_TOKEN_SECRET: ${{ secrets.WEMAKERS_REFRESH_TOKEN_SECRET }}
+        JWT_REFRESH_TOKEN_EXPIRATION_TIME: ${{ secrets.WEMAKERS_REFRESH_TOKEN_EXPIRATION_TIME }}
       run: |
-        echo NODE_ENV="${{ secrets.NODE_ENV }}" >> .env.dev
-        echo DATABASE_URL="${{ secrets.DATABASE_URL }}" >> .env.dev
-        ehco PROT="${{ secrets.PROT }}" >> .env.dev
-        ehco ACCESS_TOKEN_SECRET="${{ secrets.JWT_ACCESS_TOKEN_SECRET }}" >> .env.dev
-        ehco EXPIRATION_TIME="${{ secrets.JWT_ACCESS_TOKEN_EXPIRATION_TIME }}" >> .env.dev
-        ehco REFRESH_TOKEN_SECRET="${{ secrets.JWT_REFRESH_TOKEN_SECRET }}" >> .env.dev
-        ehco EXPIRATION_TIME="${{ secrets.JWT_REFRESH_TOKEN_EXPIRATION_TIME }}" >> .env.dev
-        cat .env.dev
+          echo NODE_ENV_WEMAKERS="$NODE_ENV" >> .env.dev
+          echo WEMAKERS_DATABASE_URL="$DATABASE_URL" >> .env.dev
+          echo WEMAKERS_DEV_PORT="$PORT" >> .env.dev
+          echo WEMAKERS_ACCESS_TOKEN_SECRET="$JWT_ACCESS_TOKEN_SECRET" >> .env.dev
+          echo WEMKERS_ACCESS_TOKEN_EXPIRATION_TIME ="$JWT_ACCESS_TOKEN_EXPIRATION_TIME" >> .env.dev
+          echo WEMAKERS_REFRESH_TOKEN_SECRET ="$JWT_REFRESH_TOKEN_SECRET" >> .env.dev
+          echo WEMAKERS_REFRESH_TOKEN_EXPIRATION_TIME="$JWT_REFRESH_TOKEN_EXPIRATION_TIME" >> .env.dev
        
-          
     - name: archive wemakers
       run: tar cvfz ./wemakers.tar.gz *
        
