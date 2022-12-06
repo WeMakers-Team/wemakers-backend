@@ -38,12 +38,12 @@ jobs:
         JWT_REFRESH_TOKEN_EXPIRATION_TIME: ${{ secrets.EXPIRATION_TIME }}
       run: |
         echo NODE_ENV="${{ secrets.NODE_ENV }}" >> .env.dev
-        echo DATABASE_URL="${{ secretsDATABASE_URL }}" >> .env.dev
+        echo DATABASE_URL="${{ secrets.DATABASE_URL }}" >> .env.dev
         ehco PROT="${{ secrets.PROT }}" >> .env.dev
-        ehco JWT_ACCESS_TOKEN_SECRET="${{ secrets.JWT_ACCESS_TOKEN_EXPIRATION_TIME }}" >> .env.dev
-        ehco JWT_ACCESS_TOKEN_EXPIRATION_TIME="${{ secrets.JWT_ACCESS_TOKEN_EXPIRATION_TIME }}" >> .env.dev
-        ehco JWT_REFRESH_TOKEN_SECRET="${{ secrets.JWT_REFRESH_TOKEN_SECRET }}" >> .env.dev
-        ehco JWT_REFRESH_TOKEN_EXPIRATION_TIME="${{ secrets.JWT_REFRESH_TOKEN_EXPIRATION_TIME }}" >> .env.dev
+        ehco ACCESS_TOKEN_SECRET="${{ secrets.JWT_ACCESS_TOKEN_SECRET }}" >> .env.dev
+        ehco EXPIRATION_TIME="${{ secrets.JWT_ACCESS_TOKEN_EXPIRATION_TIME }}" >> .env.dev
+        ehco REFRESH_TOKEN_SECRET="${{ secrets.JWT_REFRESH_TOKEN_SECRET }}" >> .env.dev
+        ehco EXPIRATION_TIME="${{ secrets.JWT_REFRESH_TOKEN_EXPIRATION_TIME }}" >> .env.dev
         cat .env.dev
        
           
