@@ -1,0 +1,62 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # 지정한 branch에서 push/pull_request 에 해당하는 command가 수행되면 이 workflow가 동작 합니다. 
+  # 여기서는 간단히 main 브런치에서 push되면서 이 workflow가 실행 되도록 하겠습니다.
+  push:
+    branches: [ develop ] 
+ 
+  # 이부분은 위의 trigger가 없어도 수동으로 동작 할 수 있게끔 해주는 역할을 합니다.
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build" 
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - name: checkout release
+      uses: actions/checkout@v3
+
+    - uses: actions/setup-node@v3
+      with:
+          node-version: 16.15.1
+          
+    - name: Make envfile
+      run: |
+        echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env.dev
+        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.dev
+        ehco "PROT=${{ secrets.PROT }}" >> .env.dev
+        ehco "JWT_ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> .env.dev
+        ehco "JWT_ACCESS_TOKEN_EXPIRATION_TIME=${{ secrets.EXPIRATION_TIME }}" >> .env.dev
+        ehco "JWT_REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> .env.dev
+        ehco "JWT_REFRESH_TOKEN_EXPIRATION_TIME=${{ secrets.EXPIRATION_TIME }}" >> .env.dev
+        cat .env
+       
+          
+    - name: archive wemakers
+      run: tar cvfz ./wemakers.tar.gz *
+       
+    - name: AWS configure credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_USER_ACCESS }}
+        aws-secret-access-key: ${{ secrets.AWS_USER_SECRET }}
+        aws-region: ap-northeast-2
+        
+    - name: upload to S3
+      run: aws s3 cp --region ap-northeast-2 ./wemakers.tar.gz s3://wemakers-code-deploy-instance/codeDeploy/
+      
+    - name: deploy with AWS codeDeploy
+      run: aws deploy create-deployment
+        --application-name wemakers-git-action
+        --deployment-config-name CodeDeployDefault.OneAtATime
+        --deployment-group-name wemakers-deploy
+        --s3-location bucket=wemakers-code-deploy-instance,bundleType=tar,key=codeDeploy/wemakers.tar.gz
+        
+        
