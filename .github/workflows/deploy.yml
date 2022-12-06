@@ -44,6 +44,7 @@ jobs:
           echo WEMKERS_ACCESS_TOKEN_EXPIRATION_TIME ="$JWT_ACCESS_TOKEN_EXPIRATION_TIME" >> .env.dev
           echo WEMAKERS_REFRESH_TOKEN_SECRET ="$JWT_REFRESH_TOKEN_SECRET" >> .env.dev
           echo WEMAKERS_REFRESH_TOKEN_EXPIRATION_TIME="$JWT_REFRESH_TOKEN_EXPIRATION_TIME" >> .env.dev
+          cat .env.dev
        
     - name: archive wemakers
       run: tar cvfz ./wemakers.tar.gz *
