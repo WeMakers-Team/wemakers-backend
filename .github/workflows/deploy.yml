@@ -37,13 +37,13 @@ jobs:
         JWT_REFRESH_TOKEN_SECRET: ${{ secrets.WEMAKERS_REFRESH_TOKEN_SECRET }}
         JWT_REFRESH_TOKEN_EXPIRATION_TIME: ${{ secrets.WEMAKERS_REFRESH_TOKEN_EXPIRATION_TIME }}
       run: |
-          echo NODE_ENV_WEMAKERS="$NODE_ENV" >> .env.dev
-          echo WEMAKERS_DATABASE_URL="$DATABASE_URL" >> .env.dev
-          echo WEMAKERS_DEV_PORT="$PORT" >> .env.dev
-          echo WEMAKERS_ACCESS_TOKEN_SECRET="$JWT_ACCESS_TOKEN_SECRET" >> .env.dev
-          echo WEMKERS_ACCESS_TOKEN_EXPIRATION_TIME ="$JWT_ACCESS_TOKEN_EXPIRATION_TIME" >> .env.dev
-          echo WEMAKERS_REFRESH_TOKEN_SECRET ="$JWT_REFRESH_TOKEN_SECRET" >> .env.dev
-          echo WEMAKERS_REFRESH_TOKEN_EXPIRATION_TIME="$JWT_REFRESH_TOKEN_EXPIRATION_TIME" >> .env.dev
+          echo NODE_ENV="$NODE_ENV" >> .env.dev
+          echo DATABASE_URL="$DATABASE_URL" >> .env.dev
+          echo PORT="$PORT" >> .env.dev
+          echo JWT_ACCESS_TOKEN_SECRET="$JWT_ACCESS_TOKEN_SECRET" >> .env.dev
+          echo JWT_ACCESS_TOKEN_EXPIRATION_TIME ="$JWT_ACCESS_TOKEN_EXPIRATION_TIME" >> .env.dev
+          echo JWT_REFRESH_TOKEN_SECRET ="$JWT_REFRESH_TOKEN_SECRET" >> .env.dev
+          echo JWT_REFRESH_TOKEN_EXPIRATION_TIME="$JWT_REFRESH_TOKEN_EXPIRATION_TIME" >> .env.dev
           cat .env.dev
        
     - name: archive wemakers
