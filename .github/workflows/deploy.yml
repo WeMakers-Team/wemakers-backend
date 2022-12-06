@@ -28,14 +28,22 @@ jobs:
           node-version: 16.15.1
           
     - name: Make envfile
+      env:
+        NODE_ENV: ${{ secrets.NODE_ENV }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        PROT: ${{ secrets.PROT }}
+        JWT_ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+        JWT_ACCESS_TOKEN_EXPIRATION_TIME: ${{ secrets.EXPIRATION_TIME }}
+        JWT_REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+        JWT_REFRESH_TOKEN_EXPIRATION_TIME: ${{ secrets.EXPIRATION_TIME }}
       run: |
-        echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env.dev
-        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.dev
-        ehco "PROT=${{ secrets.PROT }}" >> .env.dev
-        ehco "JWT_ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> .env.dev
-        ehco "JWT_ACCESS_TOKEN_EXPIRATION_TIME=${{ secrets.EXPIRATION_TIME }}" >> .env.dev
-        ehco "JWT_REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> .env.dev
-        ehco "JWT_REFRESH_TOKEN_EXPIRATION_TIME=${{ secrets.EXPIRATION_TIME }}" >> .env.dev
+        echo NODE_ENV="$NODE_ENV" >> .env.dev
+        echo DATABASE_URL="$DATABASE_URL" >> .env.dev
+        ehco PROT="$PROT" >> .env.dev
+        ehco JWT_ACCESS_TOKEN_SECRET="$JWT_ACCESS_TOKEN_EXPIRATION_TIME" >> .env.dev
+        ehco JWT_ACCESS_TOKEN_EXPIRATION_TIME="$JWT_ACCESS_TOKEN_EXPIRATION_TIME" >> .env.dev
+        ehco JWT_REFRESH_TOKEN_SECRET="$JWT_REFRESH_TOKEN_SECRET" >> .env.dev
+        ehco JWT_REFRESH_TOKEN_EXPIRATION_TIME="$JWT_REFRESH_TOKEN_EXPIRATION_TIME" >> .env.dev
         cat .env.dev
        
           
