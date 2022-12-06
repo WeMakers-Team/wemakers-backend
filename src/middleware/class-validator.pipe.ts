@@ -25,7 +25,7 @@ export class CustomValidationPipe extends NestValidationPipe {
     const key = errorCode ? Object.keys(errorCode)[0] : undefined;
     const code = errorCode?.[key]['code'];
 
-    if (code === undefined) {
+    if (!code) {
       throw new HttpException(
         {
           message: 'error code가 정의되지 않았습니다.',
