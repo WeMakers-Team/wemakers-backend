@@ -21,12 +21,13 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "start:pm2:dev": "cross-env NODE_ENV=dev pm2 start dist/main.js",
     "start:pm2:prod": "cross-env NODE_ENV=prod pm2 start dist/main.js",
-    "prismix": "dotenv -e .env.dev npx prismix && prisma format",
+    "prismix:prisma": "dotenv -e .env.dev yarn prismix && prisma format",
     "dev": "yarn prismix && ts-node server.ts",
-    "migrate:dev": "dotenv -e .env.dev -- yarn prisma migrate dev",
-    "migrate:prod": "dotenv -e .env.prod -- yarn prisma migrate dev",
-    "push:dev": "dotenv -e .env.dev -- yarn prisma db push",
-    "push:prod": "dotenv -e .env.prod -- yarn prisma db push"
+    "migrate:prisma dev": "dotenv -e .env.dev -- yarn prisma migrate dev",
+    "migrate:prisma prod": "dotenv -e .env.prod -- yarn prisma migrate dev",
+    "push:prisma dev": "dotenv -e .env.dev -- yarn prisma db push",
+    "push:prisma prod": "dotenv -e .env.prod -- yarn prisma db push",
+    "generate:prisma": "dotenv -e .env.dev -- yarn prisma generate"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",

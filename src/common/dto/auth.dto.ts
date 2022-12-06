@@ -30,7 +30,7 @@ export class AuthCreateDto {
 
   @IsNotEmpty({
     context: {
-      code: 'EMPTY_NAME',
+      code: 'EMPTY_NICKNAME',
     },
   })
   @IsString({
@@ -38,7 +38,7 @@ export class AuthCreateDto {
       code: 'MUST_STRING_TYPE',
     },
   })
-  name: string;
+  nickName: string;
 
   @IsNotEmpty({
     context: {
@@ -91,6 +91,11 @@ export class AuthCreateDto {
   })
   role: Role;
 }
+
+export class ValidateEmailDto extends PickType(AuthCreateDto, ['email']) {}
+export class ValidateNickNameDto extends PickType(AuthCreateDto, [
+  'nickName',
+]) {}
 
 export class SignInDto extends PickType(AuthCreateDto, [
   'email',

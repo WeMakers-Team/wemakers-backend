@@ -1,4 +1,4 @@
-import { PrismaClient, User } from '@prisma/client';
+import { Account, PrismaClient } from '@prisma/client';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
@@ -7,8 +7,8 @@ export class UsersRepository {
   async createUser(
     { password, checkPassword, ...dto }: AuthCreateDto,
     hashedPassword: string,
-  ): Promise<User> {
-    const newUser = await this.prisma.user.create({
+  ): Promise<Account> {
+    const newUser = await this.prisma.account.create({
       data: {
         password: hashedPassword,
         ...dto,
@@ -17,15 +17,16 @@ export class UsersRepository {
     return newUser;
   }
 
-  async getAllUsers(): Promise<User[]> {
-    return await this.prisma.user.findMany();
+  async getAllUsers(): Promise<Account[]> {
+    return await this.prisma.account.findMany();
   }
 
-  async findUserByIdOrEmail(userData: number | string): Promise<User> {
-    const whereOption =
-      typeof userData === 'number' ? { id: userData } : { email: userData };
+  async findUserByIdOrWhere(
+    where: number | { [key: string]: any },
+  ): Promise<Account> {
+    const whereOption = typeof where === 'number' ? { id: where } : where;
 
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.account.findFirst({
       where: whereOption,
     });
 

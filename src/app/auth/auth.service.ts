@@ -1,13 +1,15 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { RefreshToken, User } from '@prisma/client';
+import { RefreshToken } from '@prisma/client';
 import { UsersRepository } from '../users/users.repository';
 import {
   AuthCreateDto,
   SignInDto,
   UserIdentifier,
   UserInfoToCreateToken,
+  ValidateEmailDto,
+  ValidateNickNameDto,
 } from '../../common/dto/auth.dto';
 import {
   Account,
@@ -30,29 +32,38 @@ export class AuthService {
     private authRepository: AuthRepository,
   ) {}
 
-  async signUp(authCreateDto: AuthCreateDto): Promise<Account> {
-    try {
-      const { password } = authCreateDto;
-      const hashedData = this.encryptData(password);
+  async validateEmail({ email }: ValidateEmailDto) {
+    const user = await this.usersRepository.findUserByIdOrWhere({ email });
 
-      const { password: newUserpassword, ...response } =
-        await this.usersRepository.createUser(authCreateDto, hashedData);
-
-      return response;
-    } catch (error) {
-      if (error.code === 'P2002') {
-        throw new HttpException(
-          exceptionMessagesAuth.THIS_USER_ALREADY_EXISTS,
-          400,
-        );
-      }
-      throw new HttpException(error, 400);
+    if (user) {
+      throw new HttpException(exceptionMessagesAuth.EMAIL_ALREADY_EXISTS, 400);
     }
+  }
+
+  async validateNickName({ nickName }: ValidateNickNameDto) {
+    const user = await this.usersRepository.findUserByIdOrWhere({ nickName });
+
+    if (user) {
+      throw new HttpException(
+        exceptionMessagesAuth.NICKNAME_ALREADY_EXISTS,
+        400,
+      );
+    }
+  }
+
+  async signUp(authCreateDto: AuthCreateDto): Promise<Account> {
+    const { password } = authCreateDto;
+    const hashedData = this.encryptData(password);
+
+    const { password: newUserpassword, ...response } =
+      await this.usersRepository.createUser(authCreateDto, hashedData);
+
+    return response;
   }
 
   async signIn({ email, password }: SignInDto): Promise<AuthVerificationToken> {
     try {
-      const user = await this.usersRepository.findUserByIdOrEmail(email);
+      const user = await this.usersRepository.findUserByIdOrWhere({ email });
 
       if (!user) {
         throw new HttpException(
@@ -98,7 +109,7 @@ export class AuthService {
   }
 
   async recreateAccessToken(userId: number): Promise<AuthAccessToken> {
-    const { id, role } = await this.usersRepository.findUserByIdOrEmail(userId);
+    const { id, role } = await this.usersRepository.findUserByIdOrWhere(userId);
     const { accessToken } = await this.createAccessToken({ userId: id, role });
 
     const response: AuthAccessToken = {
