@@ -1,4 +1,5 @@
 import { Account, PrismaClient } from '@prisma/client';
+import { ProfileUpdateDto } from 'src/common/dto/users.dto';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
@@ -31,5 +32,16 @@ export class UsersRepository {
     });
 
     return user;
+  }
+
+  async updateProfile(userId: number, profileImg) {
+    return await this.prisma.account.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        profilePhoto: profileImg,
+      },
+    });
   }
 }
