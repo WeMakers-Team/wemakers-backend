@@ -33,7 +33,7 @@ export class UsersRepository {
     return user;
   }
 
-  async updateProfile(userId: number, profileImg) {
+  async updateProfile(userId: number, profileImg): Promise<Account> {
     return await this.prisma.account.update({
       where: {
         id: userId,
