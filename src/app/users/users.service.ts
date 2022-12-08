@@ -18,8 +18,8 @@ export class UsersService {
   }
 
   async updateProfile(userId: number, profileImg) {
-    const bucketFolder = '';
-    const imgFile = `${userId}_${profileImg.originalname}`;
+    const bucketFolder = 'profile';
+    const imgFile = `img_${userId}_${profileImg.originalname}`;
 
     // s3 업로드
     await this.s3.uploadS3bucket(bucketFolder, imgFile, profileImg);
