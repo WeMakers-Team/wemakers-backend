@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Account } from 'src/common/interface/auth.interface';
-import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
+
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

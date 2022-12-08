@@ -1,5 +1,4 @@
 import { Account, PrismaClient } from '@prisma/client';
-import { ProfileUpdateDto } from 'src/common/dto/users.dto';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
