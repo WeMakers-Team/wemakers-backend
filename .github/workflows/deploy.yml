@@ -36,6 +36,8 @@ jobs:
         JWT_ACCESS_TOKEN_EXPIRATION_TIME: ${{ secrets.WEMKERS_ACCESS_TOKEN_EXPIRATION_TIME }}
         JWT_REFRESH_TOKEN_SECRET: ${{ secrets.WEMAKERS_REFRESH_TOKEN_SECRET }}
         JWT_REFRESH_TOKEN_EXPIRATION_TIME: ${{ secrets.WEMAKERS_REFRESH_TOKEN_EXPIRATION_TIME }}
+        S3_USER_ACCESS_KEY: ${{ secrets.S3_AWS_ACCESS_KEY_ID }} 
+        S3_USER_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
       run: |
           echo NODE_ENV="$NODE_ENV" >> .env.dev
           echo DATABASE_URL="$DATABASE_URL" >> .env.dev
@@ -44,6 +46,8 @@ jobs:
           echo JWT_ACCESS_TOKEN_EXPIRATION_TIME ="$JWT_ACCESS_TOKEN_EXPIRATION_TIME" >> .env.dev
           echo JWT_REFRESH_TOKEN_SECRET ="$JWT_REFRESH_TOKEN_SECRET" >> .env.dev
           echo JWT_REFRESH_TOKEN_EXPIRATION_TIME="$JWT_REFRESH_TOKEN_EXPIRATION_TIME" >> .env.dev
+          echo AWS_ACCESS_KEY_ID="$S3_USER_ACCESS_KEY" >> .env.dev
+          echo AWS_SECRET_ACCESS_KEY="S3_USER_SECRET_ACCESS_KEY" >> .env.dev
           cat .env.dev
        
     - name: archive wemakers
