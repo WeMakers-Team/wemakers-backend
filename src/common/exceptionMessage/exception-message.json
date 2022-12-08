@@ -1,0 +1,6 @@
+{
+  "FAILED_UPLOAD_S3": {
+    "message": "S3 업로드 시 에러가 발생했습니다.",
+    "code": "FAILED_UPLOAD_S3"
+  }
+}
