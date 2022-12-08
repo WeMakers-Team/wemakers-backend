@@ -37,5 +37,10 @@
   "FAILED_CREATE_TOKEN": {
     "message": "토큰을 생성하지 못했습니다.",
     "code": "FAILED_CREATE_TOKEN"
+  },
+
+  "USER_NOT_EXIST": {
+    "message": "존재하지않는 유저입니다.",
+    "code": "USER_NOT_EXIST"
   }
 }

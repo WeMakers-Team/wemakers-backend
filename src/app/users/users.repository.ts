@@ -26,11 +26,9 @@ export class UsersRepository {
   ): Promise<Account> {
     const whereOption = typeof where === 'number' ? { id: where } : where;
 
-    const user = await this.prisma.account.findFirst({
+    return await this.prisma.account.findFirst({
       where: whereOption,
     });
-
-    return user;
   }
 
   async updateProfile(userId: number, profileImg): Promise<Account> {

@@ -2,6 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { Account } from 'src/common/interface/auth.interface';
 import { UsersRepository } from './users.repository';
 import { AwsS3Service } from 'src/common/service/aws.service';
+import { exceptionMessagesAuth } from 'src/common/exceptionMessage';
 
 @Injectable()
 export class UsersService {
@@ -11,9 +12,13 @@ export class UsersService {
   ) {}
 
   async findUser(userId: number): Promise<Account> {
-    const { password, ...response } =
-      await this.usersRepository.findUserByIdOrWhere(userId);
+    const user = await this.usersRepository.findUserByIdOrWhere(userId);
 
+    if (!user) {
+      throw new HttpException(exceptionMessagesAuth.USER_NOT_EXIST, 400);
+    }
+
+    const { password, ...response } = user;
     return response;
   }
 

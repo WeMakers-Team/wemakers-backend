@@ -17,7 +17,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('profile')
-  async findUser(@Param('id', ParseIntPipe) userId: number): Promise<Account> {
+  async findUser(): Promise<Account> {
+    const userId = 1; // get guard
     return await this.usersService.findUser(userId);
   }
 
