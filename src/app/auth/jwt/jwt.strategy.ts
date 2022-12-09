@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -15,15 +19,24 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     private readonly userRepository: UsersRepository,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request: any) => {
+          const accessToken = request?.headers?.['authorization'].split(' ')[1];
+          if (!accessToken) {
+            throw new HttpException(exceptionMessagesAuth.EMPTY_TOKEN, 400);
+          }
+          return accessToken;
+        },
+
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ]),
       secretOrKey: configService.get('JWT_ACCESS_TOKEN_SECRET'),
     });
   }
 
   async validate({ sub }: JwtPayloadType) {
     const user = await this.userRepository.findUserByIdOrWhere(sub);
-
-    if (user) user.id;
+    if (user) return user.id;
     else
       throw new UnauthorizedException(exceptionMessagesAuth.UNVERIFIED_TOKEN);
   }
@@ -43,6 +56,9 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: any) => {
           const refreshToken: string = request?.body?.['refreshToken'];
+          if (!refreshToken) {
+            throw new HttpException(exceptionMessagesAuth.EMPTY_TOKEN, 400);
+          }
           const decryptedRefreshToken =
             this.authService.decryptData(refreshToken);
 

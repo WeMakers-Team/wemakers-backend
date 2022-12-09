@@ -4,6 +4,11 @@
     "code": "00001"
   },
 
+  "EMPTY_TOKEN": {
+    "message": "토큰을 받지 못했습니다.",
+    "code": "EMPTY_TOKEN"
+  },
+
   "UNVERIFIED_TOKEN": {
     "message": "유효하지 않은 토큰 입니다",
     "code": "UNVERIFIED_TOKEN"
