@@ -37,6 +37,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 @Catch(UnauthorizedException)
 export class JwtexceptionFilter implements ExceptionFilter {
   catch(exception: UnauthorizedException, host: ArgumentsHost) {
+    console.error(exception);
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
     const statusCode = exception.getStatus();
