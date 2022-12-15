@@ -6,7 +6,7 @@ import { AppModule } from './app.module';
 import { CustomValidationPipe } from './middleware/class-validator.pipe';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule);
   const configService = app.get<ConfigService>(ConfigService);
 
   //swagger
@@ -20,7 +20,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   app.useGlobalPipes(new CustomValidationPipe());
-  app.useWebSocketAdapter(new IoAdapter(app))
+  app.useWebSocketAdapter(new IoAdapter(app));
   await app.listen(configService.get('PORT'));
 }
 bootstrap();

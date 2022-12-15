@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -12,7 +12,6 @@ import {
   JwtexceptionFilter,
 } from './middleware/exception-filter';
 import { SocketModule } from './app/socket/socket.module';
-import { EventsGateway } from './app/socket/socket.gateway';
 @Module({
   imports: [
     ConfigModule.forRoot({

@@ -1,11 +1,7 @@
 import {
-  Body,
   Controller,
   Get,
-  Param,
-  ParseIntPipe,
   Patch,
-  Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -28,10 +24,5 @@ export class UsersController {
   async updateProfile(@UploadedFile() profileImg) {
     const userId = 1;
     return await this.usersService.updateProfile(userId, profileImg);
-  }
-
-  @Post('chat') 
-  async chate(userId: number, @Body() message: string){
-    this.usersService.userChat(userId, message)
   }
 }
