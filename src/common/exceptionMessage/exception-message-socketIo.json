@@ -1,0 +1,10 @@
+{
+    "THIS_ROOM_ALREADY_EXISTS": {
+      "message": "해당 채팅방은 이미 존재합니다",
+      "code": "00001"
+    },
+    "THIS_ROOM_DOES_NOT_EXISTS": {
+      "message": "해당 채팅방은 존재하지 않습니다",
+      "code": "00002"
+    }
+}

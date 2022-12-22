@@ -1,5 +1,4 @@
-export class chatRoom {
-  roomid: string;
-  cheifId: string;
+export class MessagePayload {
   roomName: string;
+  message: string;
 }
