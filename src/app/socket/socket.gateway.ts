@@ -15,8 +15,6 @@ import { MessagePayload } from 'src/common/dto/socket.dto';
 import {  exceptionMessagesSocket } from 'src/common/exceptionMessage';
 import { UsersRepository } from '../users/users.repository';
 import { SocketRepository } from './socket.repository';
-
-let createdRooms = [];
 @WebSocketGateway(8001, { transports: ['websocket'], namespace: 'websocket' })
 export class EventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -42,30 +40,48 @@ export class EventsGateway
 
   async handleDisconnect(client: Socket) {
     const numId = Number(client.handshake.query.id);
-    const { nickName } = await this.user.findUserByIdOrWhere(numId);
-    this.logger.debug(`${nickName} is discsonnected...`);
+    if(!numId) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
+    try{
+      const { nickName } = await this.user.findUserByIdOrWhere(numId);
+      if(!nickName) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
+      
+      this.logger.debug(`${nickName} is discsonnected...`);
+    }catch(err){
+      throw new HttpException(err.messgae, 500)
+    }
   }
 
   async handleConnection(client: Socket) {
     const numId = Number(client.handshake.query.id);
-    const { nickName } = await this.user.findUserByIdOrWhere(numId);
+    if(!numId) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
+    try{
+      const { nickName } = await this.user.findUserByIdOrWhere(numId);
+      if(!nickName) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
 
-    this.server.emit('msgToClient', {
-      nickName,
-      text: `${nickName} is connect!`,
-    });
+      this.server.emit('msgToClient', {
+        nickName,
+        text: `${nickName} is connect!`,
+      });
+    }catch(err){
+      throw new HttpException(err.message, 500)
+    }
   }
 
   @SubscribeMessage('list-room')
   async listRoom(
     @ConnectedSocket() socket: Socket,
   ){
-
     const chatUserId = Number(socket.handshake.query.id);
+    if(!chatUserId) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
+    try{
+      const { nickName } = await this.user.findUserByIdOrWhere(chatUserId);
+      if(!nickName) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
+      const roomInfo = await this.socketRepository.listAccountRoom(chatUserId)
 
-    const roomInfo = await this.socketRepository.listAccountRoom(chatUserId)
-
-    return roomInfo;
+      return roomInfo;
+    }catch(err){
+      throw new HttpException(err.message, 500)
+    }
   }
 
 
@@ -75,15 +91,19 @@ export class EventsGateway
     @MessageBody() { roomName, message }: MessagePayload,
   ) {
     const chatUserId = Number(socket.handshake.query.id);
-    const { nickName } = await this.user.findUserByIdOrWhere(chatUserId);
-    
-    socket.broadcast
+    if(!chatUserId) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
+    try{
+      const { nickName } = await this.user.findUserByIdOrWhere(chatUserId);
+
+      socket.broadcast
       .to(roomName)
       .emit('msgToReciver', { nickName, message });
 
-    
-    this.logger.debug('message 전송 완료')
-    return { nickName , message,  };
+      this.logger.debug('message 전송 완료')
+    return { nickName , message };
+    } catch(err){
+      throw new HttpException(err.message, 500)
+    }
   }
 
   @SubscribeMessage('create-room')
@@ -92,9 +112,9 @@ export class EventsGateway
     @MessageBody() roomName: string,
   ) {
     const chatUserId = Number(socket.handshake.query.id);
+    if(!chatUserId) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
     const invitedUserId = Number(socket.handshake.query.inviteId)
-    
-    
+    if(!invitedUserId) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
     try {
     
       const { nickName } = await this.user.findUserByIdOrWhere(chatUserId);
@@ -118,7 +138,6 @@ export class EventsGateway
     } catch(err){
       throw new HttpException(err.message, 400)
     }
-    
   }
 
   @SubscribeMessage('join-room')
@@ -127,7 +146,7 @@ export class EventsGateway
     @MessageBody() roomName: string,
   ) {
     const chatUserId = Number(socket.handshake.query.id);
-
+    if(!chatUserId) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
     try{
       const exRoom = await this.socketRepository.chatRoomWithAccount({
         roomName,
@@ -150,9 +169,9 @@ export class EventsGateway
     roomName: string,
     @ConnectedSocket() socket: Socket,
     ) {
-    try{
       const chatUserId = Number(socket.handshake.query.id);
-      
+      if(!chatUserId) throw new HttpException(exceptionMessagesSocket.USER_NOT_FOUND, 404)
+    try{
       const { nickName } = await this.user.findUserByIdOrWhere(chatUserId);
       const { roomInfo } = await this.socketRepository.chatRoomWithAccount({
         roomName,
