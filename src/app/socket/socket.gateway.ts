@@ -1,5 +1,4 @@
 import { HttpException, Logger } from '@nestjs/common';
-import { IoAdapter } from '@nestjs/platform-socket.io';
 import {
   ConnectedSocket,
   MessageBody,
@@ -11,7 +10,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { PrismaClient } from '@prisma/client';
-import { IoTThingsGraph } from 'aws-sdk';
 import { Server, Socket } from 'socket.io';
 import { MessagePayload } from 'src/common/dto/socket.dto';
 import {  exceptionMessagesSocket } from 'src/common/exceptionMessage';
@@ -32,20 +30,13 @@ export class EventsGateway
   server: Server;
   logger = new Logger('GateWay');
 
-  afterInit() {
-    this.server.on('delete-room', (room) => {
-      const deletedRoom = createdRooms.find(
-        (createdRoom) => createdRoom === room,
-      );
-      if (!deletedRoom) return;
-
-      this.server.emit('delete-room', deletedRoom);
-
-      createdRooms = createdRooms.filter(
-        (createdRoom) => createdRoom !== deletedRoom,
-      ); // 유저가 생성한 room 목록 중에 삭제되는 room 있으면 제거
-    });
-
+  async afterInit() {
+    try{
+      await this.socketRepository.deleteNobodyRoom()
+    }catch(err){
+      throw new HttpException(err.message, 500)
+    }
+    
     this.logger.debug('웹소켓 서버 초기화 ✅');
   }
 
@@ -102,10 +93,12 @@ export class EventsGateway
   ) {
     const chatUserId = Number(socket.handshake.query.id);
     const invitedUserId = Number(socket.handshake.query.inviteId)
-    const { nickName } = await this.user.findUserByIdOrWhere(chatUserId);
-    const { nickName: invitedUserNickname } = await this.user.findUserByIdOrWhere(invitedUserId);
+    
     
     try {
+    
+      const { nickName } = await this.user.findUserByIdOrWhere(chatUserId);
+      const { nickName: invitedUserNickname } = await this.user.findUserByIdOrWhere(invitedUserId);  
       
       const {roomInfo} = await this.socketRepository.detailRoomInfo({accountId: chatUserId, invitedUserId: invitedUserId})
       
@@ -119,14 +112,13 @@ export class EventsGateway
         invitedUserId
       })
       
+      socket.join(roomName)
+      this.server.emit('createRoom', `${nickName}님이 ${invitedUserNickname}을 초대하였습니다`);
+      this.logger.debug(`${nickName} create ${roomName} room`);
     } catch(err){
       throw new HttpException(err.message, 400)
     }
-
-    socket.join(roomName); // 기존에 없던 room으로 join하면 room이 생성됨
-
-    this.server.emit('createRoom', `${nickName}님이 ${invitedUserNickname}을 초대하였습니다`);
-    this.logger.debug(`${nickName} create ${roomName} room`);
+    
   }
 
   @SubscribeMessage('join-room')
@@ -134,28 +126,22 @@ export class EventsGateway
     @ConnectedSocket() socket: Socket,
     @MessageBody() roomName: string,
   ) {
-    socket.join(roomName);
-
     const chatUserId = Number(socket.handshake.query.id);
 
     try{
-      const exRoom = await this.prisma.chatRoom.findFirst({
-        where: {
-          roomName,
-          ChatRoomInfo: {
-            some: 
-            { accountId: chatUserId},
-          },
-        },
+      const exRoom = await this.socketRepository.chatRoomWithAccount({
+        roomName,
+        accountId: chatUserId
       })
   
       if(!exRoom){
         throw new HttpException(exceptionMessagesSocket.THIS_ROOM_DOES_NOT_EXISTS, 400)
       }
-
+      
     }catch(err){
       throw new HttpException(err.message, 400)
     }
+    socket.join(roomName);
     this.server.to(roomName).emit('joinMessage', `$${roomName}에 입장햇습니다`);
   }
 
@@ -164,30 +150,27 @@ export class EventsGateway
     roomName: string,
     @ConnectedSocket() socket: Socket,
     ) {
-    const chatUserId = Number(socket.handshake.query.id);
-    const { nickName } = await this.user.findUserByIdOrWhere(chatUserId);
     try{
-      const exRoom = await this.prisma.chatRoom.findFirst({
-        where: {
-          roomName,
-          ChatRoomInfo: {
-            some: 
-            { accountId: chatUserId},
-          },
-        },
+      const chatUserId = Number(socket.handshake.query.id);
+      
+      const { nickName } = await this.user.findUserByIdOrWhere(chatUserId);
+      const { roomInfo } = await this.socketRepository.chatRoomWithAccount({
+        roomName,
+        accountId: chatUserId
       })
 
-      if(!exRoom){
+      if(!roomInfo){
         throw new HttpException(exceptionMessagesSocket.THIS_ROOM_DOES_NOT_EXISTS, 400)
       }
 
-     socket.leave(roomName)
+      socket.leave(roomName)
 
-     await this.prisma.chatUserInfo.deleteMany({
-      where: { chatRoomId: exRoom.id, accountId: chatUserId },
-    });
+      this.socketRepository.disconnectSocketWithRoom({
+        roomId: roomInfo.id,
+        accountId: chatUserId
+      })
     
-     this.server.to(roomName).emit('leaveRoomMessage', `${nickName}님이 ${roomName}에서 퇴장하셨습니다`)
+      this.server.to(roomName).emit('leaveRoomMessage', `${nickName}님이 ${roomName}에서 퇴장하셨습니다`)
     }catch(err){
       throw new HttpException(err.message, 400)
     }
