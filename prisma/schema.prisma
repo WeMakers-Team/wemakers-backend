@@ -20,7 +20,7 @@ model Account {
   updatedAt     DateTime       @updatedAt
   RefreshToken  RefreshToken?  @relation(name: "AccountRefreshToken")
   MentorProfile MentorProfile? @relation(name: "MentorAccount")
-
+  Project       Project[]  
   @@map("accounts")
 }
 
@@ -65,7 +65,51 @@ model Skill {
   mentorProfile MentorProfile[] @relation(name: "MentorProfileToSkill")
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+  projectId     Int?
+  Project       StacksOnProject[]         
 }
+
+model Project {
+  id              Int                     @id @default(autoincrement())
+  title           String
+  startDate       DateTime
+  endDate         DateTime
+  memberInfo      String?
+  projectDetail   String
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  skillId         Int?
+  accountId       Int
+  skill           StacksOnProject[]
+  Account         Account                 @relation(fields: [accountId], references: [id])
+  Categories      CategoriesOnProject[]
+}
+
+model Category {
+  id              Int                     @id @default(autoincrement())
+  name            String
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  project         CategoriesOnProject[]
+}
+
+
+model CategoriesOnProject {
+  id              Int             @id @default(autoincrement())
+  projectId       Int
+  project         Project         @relation(fields: [projectId], references: [id])
+  categoryId      Int
+  category        Category        @relation(fields: [categoryId], references: [id])
+}
+
+model StacksOnProject {
+  id              Int             @id @default(autoincrement())
+  projectId       Int
+  project         Project         @relation(fields: [projectId], references: [id])
+  skillId         Int
+  skill           Skill           @relation(fields: [skillId], references: [id])
+}
+
 
 enum Role {
   MENTEE
