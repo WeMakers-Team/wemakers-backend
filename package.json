@@ -25,7 +25,7 @@
     "dev": "yarn prismix && ts-node server.ts",
     "migrate:prisma dev": "dotenv -e .env.dev -- yarn prisma migrate dev",
     "migrate:prisma prod": "dotenv -e .env.prod -- yarn prisma migrate dev",
-    "push:prisma dev": "dotenv -e .env.dev -- yarn prisma db push",
+    "push:prisma:dev": "dotenv -e .env.dev -- yarn prisma db push",
     "push:prisma prod": "dotenv -e .env.prod -- yarn prisma db push",
     "generate:prisma": "dotenv -e .env.dev -- yarn prisma generate",
     "studio:prisma": "dotenv -e .env.dev -- yarn prisma studio"

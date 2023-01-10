@@ -1,6 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaClient, Category, Skill, CategoriesOnProject, Project, StacksOnProject } from '@prisma/client';
-import { ConnectToProjectInCategories, ConnectToStackInProject, CreateCategory, CreateProjectDto, CreateProjectStaCk} from 'src/common/dto/project.dto';
+import { UserIdentifier } from 'src/common/dto/auth.dto';
+import { ConnectToProjectInCategories, ConnectToStackInProject, CreateCategory, CreateProjectDto, CreateProjectStaCk, UserId} from 'src/common/dto/project.dto';
 
 
 
@@ -133,8 +134,8 @@ export class ProjectService {
         }
     }
 
-    async createProject(dto: CreateProjectDto): Promise<Project>{
-        const { title, startDate, endDate, projectDetail, userId:accountId} = dto
+    async createProject(dto: CreateProjectDto, {userId}: UserIdentifier): Promise<Project>{
+        const { title, startDate, endDate, projectDetail } = dto
 
         try{
             const response = await this.prisma.project.create({
@@ -145,7 +146,7 @@ export class ProjectService {
                     projectDetail,
                     Account: {
                         connect: {
-                            id: accountId
+                            id: userId
                         }
                     }
                 }
@@ -153,6 +154,26 @@ export class ProjectService {
 
             return response
         } catch(err){
+            throw new HttpException(err.message, 500)
+        }
+    }
+
+    async userProjectList(userIdentifier: number): Promise<Project[]>{
+        try{
+            const projects = await this.prisma.project.findMany({
+                where: {
+                    Account: {
+                        id: userIdentifier
+                    }
+                },
+                include: {
+                    Categories: true,
+                    skill: true
+                }
+            })
+
+            return projects
+        }catch(err){
             throw new HttpException(err.message, 500)
         }
     }

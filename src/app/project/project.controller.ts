@@ -1,5 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Project } from '@prisma/client';
+import { GetCurrentUser } from 'src/common/decorator/auth.decorator';
+import { UserIdentifier } from 'src/common/dto/auth.dto';
 import { ConnectToProjectInCategories, CreateCategory, CreateProjectDto } from 'src/common/dto/project.dto';
+import { AccessTokenGuard } from '../auth/jwt/jwt.guard';
 
 import { ProjectService } from './project.service';
 
@@ -25,12 +29,20 @@ export class ProjectController {
         return await this.projectService.connectCategoriesToProject(dto)
     }
 
-    @Post('/create')
+    @UseGuards(AccessTokenGuard)
+    @Post()
     async createProject(
-        @Body() dto: CreateProjectDto
-        
+        @Body() dto: CreateProjectDto,
+        @GetCurrentUser()  userIdentifier : UserIdentifier   
     ){
-        const { title, startDate, endDate, projectDetail, userId } = dto
-        return await this.projectService.createProject({title, startDate, endDate, projectDetail, userId})
+        return await this.projectService.createProject(dto, userIdentifier)
+    }    
+
+    @UseGuards(AccessTokenGuard)
+    @Get('/list/user')
+    async getProjectByUserId(@GetCurrentUser() { userId } : UserIdentifier ):Promise<Project[]>
+    {
+        console.log(userId)
+        return await this.projectService.userProjectList(userId)
     }
 }

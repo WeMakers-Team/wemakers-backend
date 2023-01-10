@@ -91,6 +91,17 @@ export class CreateProjectDto{
     userId: number;
 }
 
+export class UserId {
+    @IsNotEmpty({
+        context: {
+          message: 'EMPTY_CATEGORY_NAME',
+          code: '00002'
+        },
+    })
+    @IsNumber()
+    userId: number;
+}
+
 
 
 
