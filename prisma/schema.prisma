@@ -36,27 +36,18 @@ model RefreshToken {
 }
 
 model MentorProfile {
-  id              Int            @id @default(autoincrement())
-  mentorIntroduce String         @db.VarChar(100)
+  id              Int      @id @default(autoincrement())
+  mentorIntroduce String   @db.VarChar(100)
   portfolioLink   String?
   major           String?
-  account         Account        @relation(name: "MentorAccount", fields: [accountId], references: [id])
-  accountId       Int            @unique
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  ProtFolioImg    ProtFolioImg[] @relation(name: "MentorPortfolioImg")
-  Skill           Skill[]        @relation(name: "MentorProfileToSkill")
+  company         String?
+  account         Account  @relation(name: "MentorAccount", fields: [accountId], references: [id])
+  accountId       Int      @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  Skill           Skill[]  @relation(name: "MentorProfileToSkill")
 
   @@map("mentor_profiles")
-}
-
-model ProtFolioImg {
-  id              Int           @id @default(autoincrement())
-  url             String
-  mentorProfile   MentorProfile @relation(name: "MentorPortfolioImg", fields: [mentorProfileId], references: [id])
-  mentorProfileId Int
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
 }
 
 model Skill {
