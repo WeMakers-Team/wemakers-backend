@@ -3,13 +3,14 @@ import { Account } from 'src/common/interface/auth.interface';
 import { UsersRepository } from './users.repository';
 import { AwsS3Service } from 'src/common/service/aws.service';
 import { exceptionMessagesAuth } from 'src/common/exceptionMessage';
+import { UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly s3: AwsS3Service,
     private readonly usersRepository: UsersRepository,
-  ) {}
+  ) { }
 
   async findUser(userId: number): Promise<Account> {
     const user = await this.usersRepository.findUserByIdOrWhere(userId);
@@ -22,14 +23,21 @@ export class UsersService {
     return response;
   }
 
-  async updateProfile(userId: number, profileImg) {
-    const bucketFolder = 'profile';
-    const imgFile = `img_${userId}_${profileImg.originalname}`;
+  async updateAccount(userId: number, dto: UpdateAccountDto, profileImg?) {
+    const imgFileName = profileImg ? `img_${userId}_${profileImg.originalname}` : undefined
 
-    // s3 업로드
-    await this.s3.uploadS3bucket(bucketFolder, imgFile, profileImg);
+    if (imgFileName) {
+      const bucketFolderName = 'profile';
 
-    // db에 url 저장
-    return await this.usersRepository.updateProfile(userId, imgFile);
+      // s3 업로드
+      await this.s3.uploadS3bucket(bucketFolderName, imgFileName, profileImg);
+    }
+
+    // db 저장
+    return await this.usersRepository.updateAccount(userId, dto, imgFileName);
+  }
+
+  async updateMentorProfile(userId: number, dto: UpdateMentorProfileDto) {
+    return await this.usersRepository.updateMentorProfile(userId, dto);
   }
 }

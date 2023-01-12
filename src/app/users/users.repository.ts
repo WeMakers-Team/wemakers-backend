@@ -1,4 +1,5 @@
 import { Account, PrismaClient } from '@prisma/client';
+import { UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
@@ -31,14 +32,24 @@ export class UsersRepository {
     });
   }
 
-  async updateProfile(userId: number, profileImg): Promise<Account> {
+  async updateAccount(userId: number, dto: UpdateAccountDto, profileImg: string | undefined): Promise<Account> {
     return await this.prisma.account.update({
       where: {
         id: userId,
       },
       data: {
         profilePhoto: profileImg,
+        ...dto
       },
     });
+  }
+
+  async updateMentorProfile(userId: number, dto: UpdateMentorProfileDto) {
+    return await this.prisma.mentorProfile.update({
+      where: {
+        accountId: userId
+      },
+      data: dto
+    })
   }
 }

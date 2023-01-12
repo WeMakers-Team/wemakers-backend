@@ -9,23 +9,31 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { Account } from 'src/common/interface/auth.interface';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
-  @Get('profile')
+  @Patch('account')
+  @UseInterceptors(FileInterceptor('profileImg'))
+  async updateProfile(@UploadedFile() profileImg, @Body() dto: UpdateAccountDto) {
+    const userId = 1;
+    return await this.usersService.updateAccount(userId, dto, profileImg);
+  }
+
+  @Get('mentor-profile')
   async findUser(): Promise<Account> {
     const userId = 1; // get guard
     return await this.usersService.findUser(userId);
   }
 
-  @Patch('profile')
-  @UseInterceptors(FileInterceptor('profileImg'))
-  async updateProfile(@UploadedFile() profileImg) {
+  @Patch('mentor-profile')
+  async updateMentorProfile(@Body() dto: UpdateMentorProfileDto) {
     const userId = 1;
-    return await this.usersService.updateProfile(userId, profileImg);
+    return await this.usersService.updateMentorProfile(userId, dto);
   }
+
 }
