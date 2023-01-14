@@ -45,11 +45,22 @@ export class UsersRepository {
   }
 
   async updateMentorProfile(userId: number, dto: UpdateMentorProfileDto) {
+    const { skillsId, category, ...others } = dto;
+
     return await this.prisma.mentorProfile.update({
       where: {
         accountId: userId
       },
-      data: dto
+      data: {
+        ...others,
+        Skill: {
+          connect: skillsId.map((id) => {
+            return {
+              id
+            }
+          })
+        },
+      }
     })
   }
 }

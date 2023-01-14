@@ -10,7 +10,7 @@ export class UpdateMentorProfileDto {
     major?: string;
     company?: string;
     category?: string[]; //임시
-    skill?: string[];   //임시
+    skillsId?: number[];    //id
     mentorIntroduce?: string;
     portfolioLink?: string;
 }

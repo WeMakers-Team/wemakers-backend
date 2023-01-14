@@ -53,6 +53,7 @@ model MentorProfile {
 model Skill {
   id            Int             @id @default(autoincrement())
   name          String
+  logo          String
   mentorProfile MentorProfile[] @relation(name: "MentorProfileToSkill")
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt

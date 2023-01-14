@@ -48,8 +48,10 @@ model MentorProfile {
 }
 
 model Skill {
-  id            Int             @id @default(autoincrement())
-  name          String
+  id   Int    @id @default(autoincrement())
+  name String
+  logo String //  로고 이미지
+
   mentorProfile MentorProfile[] // n:m
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
