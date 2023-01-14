@@ -36,4 +36,9 @@ export class UsersController {
     return await this.usersService.updateMentorProfile(userId, dto);
   }
 
+  @Patch('mentor-profile/is-public')
+  async isPublicMentorProfile() {
+    const userId = 1;
+    return await this.usersService.isPublicMentorProfile(userId)
+  }
 }

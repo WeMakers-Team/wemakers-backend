@@ -37,6 +37,7 @@ model MentorProfile {
   portfolioLink   String?
   major           String? // 직무
   company         String? // 회사
+  isPublic        Boolean  @default(true) // 공개 여부
   account         Account  @relation(name: "MentorAccount", fields: [accountId], references: [id])
   accountId       Int      @unique
   createdAt       DateTime @default(now())

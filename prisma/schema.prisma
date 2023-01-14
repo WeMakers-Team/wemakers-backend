@@ -41,6 +41,7 @@ model MentorProfile {
   portfolioLink   String?
   major           String?
   company         String?
+  isPublic        Boolean  @default(true)
   account         Account  @relation(name: "MentorAccount", fields: [accountId], references: [id])
   accountId       Int      @unique
   createdAt       DateTime @default(now())

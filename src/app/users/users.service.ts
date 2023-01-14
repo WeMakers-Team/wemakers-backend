@@ -40,4 +40,8 @@ export class UsersService {
   async updateMentorProfile(userId: number, dto: UpdateMentorProfileDto) {
     return await this.usersRepository.updateMentorProfile(userId, dto);
   }
+
+  async isPublicMentorProfile(userId: number) {
+    return await this.usersRepository.isPublicMentorProfile(userId)
+  }
 }

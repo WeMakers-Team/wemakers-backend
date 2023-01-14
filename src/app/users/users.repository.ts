@@ -63,4 +63,21 @@ export class UsersRepository {
       }
     })
   }
+
+  async isPublicMentorProfile(userId: number) {
+    const { isPublic } = await this.prisma.mentorProfile.findFirst({
+      where: {
+        accountId: userId
+      }
+    })
+
+    return await this.prisma.mentorProfile.update({
+      where: {
+        accountId: userId
+      },
+      data: {
+        isPublic: isPublic ? false : true
+      }
+    })
+  }
 }
