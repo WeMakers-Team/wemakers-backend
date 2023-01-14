@@ -1,4 +1,4 @@
-import { Account, PrismaClient } from '@prisma/client';
+import { Account, MentorProfile, PrismaClient } from '@prisma/client';
 import { UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
@@ -42,6 +42,18 @@ export class UsersRepository {
         ...dto
       },
     });
+  }
+
+  async getAllMentors(): Promise<MentorProfile[]> {
+    return await this.prisma.mentorProfile.findMany()
+  }
+
+  async findMentorProfile(userId: number): Promise<MentorProfile> {
+    return await this.prisma.mentorProfile.findFirst({
+      where: {
+        accountId: userId
+      }
+    })
   }
 
   async updateMentorProfile(userId: number, dto: UpdateMentorProfileDto) {

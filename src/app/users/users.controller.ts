@@ -9,6 +9,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { MentorProfile } from '@prisma/client';
 import { UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { Account } from 'src/common/interface/auth.interface';
 import { UsersService } from './users.service';
@@ -17,17 +18,28 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  @Get('account')
+  async findUser(): Promise<Account> {
+    const userId = 1; // get guard
+    return await this.usersService.findUser(userId);
+  }
+
   @Patch('account')
   @UseInterceptors(FileInterceptor('profileImg'))
-  async updateProfile(@UploadedFile() profileImg, @Body() dto: UpdateAccountDto) {
+  async updateAccount(@UploadedFile() profileImg, @Body() dto: UpdateAccountDto) {
     const userId = 1;
     return await this.usersService.updateAccount(userId, dto, profileImg);
   }
 
+  @Get('mentors')
+  async getAllMentors(): Promise<MentorProfile[]> {
+    return await this.usersService.getAllMentors()
+  }
+
   @Get('mentor-profile')
-  async findUser(): Promise<Account> {
-    const userId = 1; // get guard
-    return await this.usersService.findUser(userId);
+  async findMentorProfile(): Promise<MentorProfile> {
+    const userId = 1;
+    return await this.usersService.findMentorProfile(userId)
   }
 
   @Patch('mentor-profile')

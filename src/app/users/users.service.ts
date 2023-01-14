@@ -4,6 +4,7 @@ import { UsersRepository } from './users.repository';
 import { AwsS3Service } from 'src/common/service/aws.service';
 import { exceptionMessagesAuth } from 'src/common/exceptionMessage';
 import { UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
+import { MentorProfile } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -35,6 +36,14 @@ export class UsersService {
 
     // db 저장
     return await this.usersRepository.updateAccount(userId, dto, imgFileName);
+  }
+
+  async getAllMentors(): Promise<MentorProfile[]> {
+    return await this.usersRepository.getAllMentors()
+  }
+
+  async findMentorProfile(userId: number): Promise<MentorProfile> {
+    return await this.usersRepository.findMentorProfile(userId)
   }
 
   async updateMentorProfile(userId: number, dto: UpdateMentorProfileDto) {
