@@ -5,12 +5,13 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MentorProfile } from '@prisma/client';
-import { UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
+import { CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { Account } from 'src/common/interface/auth.interface';
 import { UsersService } from './users.service';
 
@@ -18,6 +19,7 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  // 멘토, 멘티 계정 프로필
   @Get('account')
   async findUser(): Promise<Account> {
     const userId = 1; // get guard
@@ -31,6 +33,7 @@ export class UsersController {
     return await this.usersService.updateAccount(userId, dto, profileImg);
   }
 
+  // 멘토 프로필
   @Get('mentors')
   async getAllMentors(): Promise<MentorProfile[]> {
     return await this.usersService.getAllMentors()
@@ -52,5 +55,12 @@ export class UsersController {
   async isPublicMentorProfile() {
     const userId = 1;
     return await this.usersService.isPublicMentorProfile(userId)
+  }
+
+  // 스킬
+  @Post('skill')
+  @UseInterceptors(FileInterceptor('logoImg'))
+  async createSkill(@UploadedFile() logo, dto: CreateSkillDto) {
+    return await this.usersService.createSkill(dto, logo)
   }
 }

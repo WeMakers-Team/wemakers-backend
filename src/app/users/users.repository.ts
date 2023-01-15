@@ -1,5 +1,5 @@
 import { Account, MentorProfile, PrismaClient } from '@prisma/client';
-import { UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
+import { CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
@@ -89,6 +89,15 @@ export class UsersRepository {
       },
       data: {
         isPublic: isPublic ? false : true
+      }
+    })
+  }
+
+  async createSkill(dto: CreateSkillDto, logoImg) {
+    return await this.prisma.skill.create({
+      data: {
+        logo: logoImg,
+        ...dto
       }
     })
   }

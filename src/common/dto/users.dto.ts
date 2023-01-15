@@ -14,3 +14,7 @@ export class UpdateMentorProfileDto {
     mentorIntroduce?: string;
     portfolioLink?: string;
 }
+
+export class CreateSkillDto {
+    name: string;
+}

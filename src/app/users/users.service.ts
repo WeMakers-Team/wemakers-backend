@@ -3,7 +3,7 @@ import { Account } from 'src/common/interface/auth.interface';
 import { UsersRepository } from './users.repository';
 import { AwsS3Service } from 'src/common/service/aws.service';
 import { exceptionMessagesAuth } from 'src/common/exceptionMessage';
-import { UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
+import { CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { MentorProfile } from '@prisma/client';
 
 @Injectable()
@@ -52,5 +52,14 @@ export class UsersService {
 
   async isPublicMentorProfile(userId: number) {
     return await this.usersRepository.isPublicMentorProfile(userId)
+  }
+
+  async createSkill(dto: CreateSkillDto, logoImg) {
+    const imgFileName = `img_${new Date()}_${logoImg.originalname}`
+    const bucketFolderName = 'skills-logo';
+
+    await this.s3.uploadS3bucket(bucketFolderName, imgFileName, logoImg);
+
+    return await this.usersRepository.createSkill(dto, imgFileName)
   }
 }
