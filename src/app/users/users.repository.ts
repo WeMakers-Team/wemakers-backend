@@ -1,4 +1,5 @@
-import { Account, PrismaClient } from '@prisma/client';
+import { Account, MentorProfile, PrismaClient } from '@prisma/client';
+import { CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
@@ -31,14 +32,73 @@ export class UsersRepository {
     });
   }
 
-  async updateProfile(userId: number, profileImg): Promise<Account> {
+  async updateAccount(userId: number, dto: UpdateAccountDto, profileImg: string | undefined): Promise<Account> {
     return await this.prisma.account.update({
       where: {
         id: userId,
       },
       data: {
         profilePhoto: profileImg,
+        ...dto
       },
     });
+  }
+
+  async getAllMentors(): Promise<MentorProfile[]> {
+    return await this.prisma.mentorProfile.findMany()
+  }
+
+  async findMentorProfile(userId: number): Promise<MentorProfile> {
+    return await this.prisma.mentorProfile.findFirst({
+      where: {
+        accountId: userId
+      }
+    })
+  }
+
+  async updateMentorProfile(userId: number, dto: UpdateMentorProfileDto) {
+    const { skillsId, category, ...others } = dto;
+
+    return await this.prisma.mentorProfile.update({
+      where: {
+        accountId: userId
+      },
+      data: {
+        ...others,
+        Skill: {
+          connect: skillsId.map((id) => {
+            return {
+              id
+            }
+          })
+        },
+      }
+    })
+  }
+
+  async isPublicMentorProfile(userId: number) {
+    const { isPublic } = await this.prisma.mentorProfile.findFirst({
+      where: {
+        accountId: userId
+      }
+    })
+
+    return await this.prisma.mentorProfile.update({
+      where: {
+        accountId: userId
+      },
+      data: {
+        isPublic: isPublic ? false : true
+      }
+    })
+  }
+
+  async createSkill(dto: CreateSkillDto, logoImg) {
+    return await this.prisma.skill.create({
+      data: {
+        logo: logoImg,
+        ...dto
+      }
+    })
   }
 }
