@@ -9,17 +9,19 @@ generator client {
 }
 
 model Account {
-  id            Int            @id @default(autoincrement())
-  nickName      String
-  email         String         @unique
-  password      String
+  id            Int               @id @default(autoincrement())
+  nickName      String?
+  email         String?           @unique
+  password      String?
   profilePhoto  String?
   introduce     String?
-  role          Role           @default(MENTEE)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  RefreshToken  RefreshToken?  @relation(name: "AccountRefreshToken")
-  MentorProfile MentorProfile? @relation(name: "MentorAccount")
+  role          Role              @default(MENTEE)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  RefreshToken  RefreshToken?     @relation(name: "AccountRefreshToken")
+  MentorProfile MentorProfile?    @relation(name: "MentorAccount")
+  BookmarkFrom  BookmarkMentors[] @relation(name: "BookmarkFrom")
+  BookmarkTo    BookmarkMentors[] @relation(name: "BookmarkTo")
 
   @@map("accounts")
 }
@@ -37,7 +39,7 @@ model RefreshToken {
 
 model MentorProfile {
   id              Int      @id @default(autoincrement())
-  mentorIntroduce String   @db.VarChar(100)
+  mentorIntroduce String?  @db.VarChar(100)
   portfolioLink   String?
   major           String?
   company         String?
@@ -58,6 +60,18 @@ model Skill {
   mentorProfile MentorProfile[] @relation(name: "MentorProfileToSkill")
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+}
+
+model BookmarkMentors {
+  mentee    Account  @relation(name: "BookmarkFrom", fields: [menteeId], references: [id])
+  menteeId  Int
+  mentor    Account  @relation(name: "BookmarkTo", fields: [mentorId], references: [id])
+  mentorId  Int
+  isClicked Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([menteeId, mentorId])
 }
 
 enum Role {

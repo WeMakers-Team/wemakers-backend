@@ -18,3 +18,8 @@ export class UpdateMentorProfileDto {
 export class CreateSkillDto {
     name: string;
 }
+
+export class BookmarkMentorDto {
+    mentorProfileId: number;
+    isClicked?: boolean
+}
