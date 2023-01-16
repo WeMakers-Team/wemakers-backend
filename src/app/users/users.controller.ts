@@ -60,7 +60,7 @@ export class UsersController {
   // 스킬
   @Post('skill')
   @UseInterceptors(FileInterceptor('logoImg'))
-  async createSkill(@UploadedFile() logo, dto: CreateSkillDto) {
+  async createSkill(@UploadedFile() logo, @Body() dto: CreateSkillDto) {
     return await this.usersService.createSkill(dto, logo)
   }
 }

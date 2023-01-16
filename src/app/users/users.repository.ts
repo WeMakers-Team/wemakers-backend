@@ -9,11 +9,22 @@ export class UsersRepository {
     { password, checkPassword, ...dto }: AuthCreateDto,
     hashedPassword: string,
   ): Promise<Account> {
+
+    let data: any = {
+      password: hashedPassword,
+      ...dto,
+    }
+
+    if (dto.role === "MENTOR") {
+      data.MentorProfile = {
+        create: {
+          mentorIntroduce: ""
+        }
+      }
+    }
+
     const newUser = await this.prisma.account.create({
-      data: {
-        password: hashedPassword,
-        ...dto,
-      },
+      data
     });
     return newUser;
   }
@@ -65,13 +76,13 @@ export class UsersRepository {
       },
       data: {
         ...others,
-        Skill: {
+        Skill: skillsId ? {
           connect: skillsId.map((id) => {
             return {
               id
             }
           })
-        },
+        } : undefined,
       }
     })
   }
