@@ -3,7 +3,7 @@ import { Account } from 'src/common/interface/auth.interface';
 import { UsersRepository } from './users.repository';
 import { AwsS3Service } from 'src/common/service/aws.service';
 import { exceptionMessagesAuth } from 'src/common/exceptionMessage';
-import { CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
+import { BookmarkMentorDto, CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { MentorProfile } from '@prisma/client';
 
 @Injectable()
@@ -38,8 +38,8 @@ export class UsersService {
     return await this.usersRepository.updateAccount(userId, dto, imgFileName);
   }
 
-  async getAllMentors(): Promise<MentorProfile[]> {
-    return await this.usersRepository.getAllMentors()
+  async getAllMentors(userId: number) {
+    return await this.usersRepository.getAllMentors(userId)
   }
 
   async findMentorProfile(userId: number): Promise<MentorProfile> {
@@ -61,5 +61,9 @@ export class UsersService {
     await this.s3.uploadS3bucket(bucketFolderName, imgFileName, logoImg);
 
     return await this.usersRepository.createSkill(dto, imgFileName)
+  }
+
+  async bookmarkMentor(dto: BookmarkMentorDto, userId: number) {
+    return await this.usersRepository.bookmarkMentor(dto, userId)
   }
 }

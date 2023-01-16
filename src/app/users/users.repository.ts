@@ -1,5 +1,5 @@
 import { Account, MentorProfile, PrismaClient } from '@prisma/client';
-import { CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
+import { BookmarkMentorDto, CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { AuthCreateDto } from '../../common/dto/auth.dto';
 
 export class UsersRepository {
@@ -55,8 +55,23 @@ export class UsersRepository {
     });
   }
 
-  async getAllMentors(): Promise<MentorProfile[]> {
-    return await this.prisma.mentorProfile.findMany()
+  async getAllMentors(userId: number): Promise<MentorProfile[]> {
+    return await this.prisma.mentorProfile.findMany({
+      include: {
+        account: {
+          include: {
+            BookmarkTo: { // 북마크한 유저들
+              select: {
+                isClicked: true // 북마크 여부
+              },
+              where: {
+                menteeId: userId
+              }
+            }
+          }
+        }
+      }
+    })
   }
 
   async findMentorProfile(userId: number): Promise<MentorProfile> {
@@ -110,6 +125,24 @@ export class UsersRepository {
         logo: logoImg,
         ...dto
       }
+    })
+  }
+
+  async bookmarkMentor({ mentorProfileId, isClicked }: BookmarkMentorDto, userId: number) {
+    return await this.prisma.bookmarkMentors.upsert({
+      where: {
+        menteeId_mentorId: {
+          menteeId: userId,
+          mentorId: mentorProfileId
+        }
+      },
+      update: {
+        isClicked: !isClicked,
+      },
+      create: {
+        menteeId: userId,
+        mentorId: mentorProfileId,
+      },
     })
   }
 }

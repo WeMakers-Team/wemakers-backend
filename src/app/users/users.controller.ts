@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MentorProfile } from '@prisma/client';
-import { CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
+import { BookmarkMentorDto, CreateSkillDto, UpdateAccountDto, UpdateMentorProfileDto } from 'src/common/dto/users.dto';
 import { Account } from 'src/common/interface/auth.interface';
 import { UsersService } from './users.service';
 
@@ -36,7 +36,8 @@ export class UsersController {
   // 멘토 프로필
   @Get('mentors')
   async getAllMentors(): Promise<MentorProfile[]> {
-    return await this.usersService.getAllMentors()
+    const userId = 1;
+    return await this.usersService.getAllMentors(userId)
   }
 
   @Get('mentor-profile')
@@ -62,5 +63,12 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('logoImg'))
   async createSkill(@UploadedFile() logo, @Body() dto: CreateSkillDto) {
     return await this.usersService.createSkill(dto, logo)
+  }
+
+  // 북마크 및 취소
+  @Post('bookmark/mentor')
+  async bookmarkMentor(@Body() dto: BookmarkMentorDto) {
+    const userId = 1;
+    return await this.usersService.bookmarkMentor(dto, userId)
   }
 }
