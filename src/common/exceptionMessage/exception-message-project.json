@@ -1,0 +1,11 @@
+{
+    "NOT_FOUND_PROJECT": {
+      "message": "해당 프로젝트는 존재하지 않습니다",
+      "code": "THIS_PORJECT_NOT_FOUND"
+    },
+
+    "UPDATE_ONLY_ACCEPTED_CREATE_USER": {
+        "message":"프로젝트 수정은 오직 생성한 유저만이 가능합니다",
+        "code": "UPDATE_ONLY_ACCEPTED_CREATE_USER"
+    }
+}

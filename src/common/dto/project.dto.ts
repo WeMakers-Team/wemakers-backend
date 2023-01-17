@@ -1,4 +1,7 @@
+import { PartialType } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import { IsDate, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { string } from "joi";
 
 
 export class CreateCategory {
@@ -6,7 +9,7 @@ export class CreateCategory {
         context: {
           message: 'EMPTY_CATEGORY_NAME',
           code: '00002'
-        },
+        }, 
     })
     name: string;   
 }
@@ -22,13 +25,13 @@ export class CreateProjectStaCk {
 }
 
 export class ConnectToProjectInCategories {
-    @IsNotEmpty({
-        context: {
-            message: 'PROJECT_ID_IS_NOT_EMPTY',
-            code: '00004'
-        },
-    })
-    projectId: number;
+    // @IsNotEmpty({
+    //     context: {
+    //         message: 'PROJECT_ID_IS_NOT_EMPTY',
+    //         code: '00004'
+    //     },
+    // })
+    // projectId: number;
     
     category: CreateCategory[]
 }
@@ -45,7 +48,7 @@ export class ConnectToStackInProject {
     stack: CreateProjectStaCk[]
 }
 
-export class CreateProjectDto{
+export class ProjectDto{
     @IsNotEmpty({
         context: {
             message: 'PROJECT_MUST_TO_NEED_TITLE',
@@ -61,7 +64,7 @@ export class CreateProjectDto{
             code: '00007'
         },
     })
-    @IsDate()
+    // @IsDate()
     startDate: Date;
 
     @IsNotEmpty({
@@ -70,8 +73,9 @@ export class CreateProjectDto{
             code: '00008'
         },
     })
-    @IsDate()
+    // @IsDate()
     endDate: Date;
+
     @IsNotEmpty({
         context: {
             message: 'PROJECT_MUST_TO_NEED_PROJECT_DETAIL',
@@ -81,24 +85,20 @@ export class CreateProjectDto{
     @IsString()
     projectDetail: string;
 
-    @IsNotEmpty({
-        context: {
-            message: 'DATA_CREATE_USER_NOT_DEFINED',
-            code: '00010'
-        },
-    })
-    @IsNumber()
-    userId: number;
+
+    memberInfo?: string;
+
 }
 
-export class UserId {
-    @IsNotEmpty({
-        context: {
-          message: 'EMPTY_CATEGORY_NAME',
-          code: '00002'
-        },
-    })
-    @IsNumber()
+export type reviseProject = Partial<ProjectDto>
+
+export class projectIdentifier {
+    @Type(() => Number)
+    projectId: number;
+}
+
+export class projectWithUserIdentifier extends projectIdentifier {
+    @Type(() => Number)
     userId: number;
 }
 
