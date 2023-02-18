@@ -1,0 +1,51 @@
+{
+  "NOT_FOUND_USER": {
+    "message": "테스트용 exception message",
+    "code": "00001"
+  },
+
+  "EMPTY_TOKEN": {
+    "message": "토큰을 받지 못했습니다.",
+    "code": "EMPTY_TOKEN"
+  },
+
+  "UNVERIFIED_TOKEN": {
+    "message": "유효하지 않은 토큰 입니다",
+    "code": "UNVERIFIED_TOKEN"
+  },
+
+  "EMAIL_ALREADY_EXISTS": {
+    "message": "이미 존재하는 이메일 입니다.",
+    "code": "EMAIL_ALREADY_EXISTS"
+  },
+
+  "NICKNAME_ALREADY_EXISTS": {
+    "message": "이미 존재하는 닉네임 입니다.",
+    "code": "NICKNAME_ALREADY_EXISTS"
+  },
+
+  "THIS_USER_ALREADY_EXISTS": {
+    "message": "해당 유저는 이미 회원가입 되어 있습니다",
+    "code": "THIS_USER_ALREADY_EXISTS"
+  },
+
+  "THIS_EAMIL_DOES_NOT_EXIST": {
+    "message": "이메일과 비밀번호를 다시 확인해주세요.",
+    "code": "THIS_EAMIL_DOES_NOT_EXIST"
+  },
+
+  "PASSWORD_DOES_NOT_MATCH": {
+    "message": "비밀번호가 일치하지 않습니다",
+    "code": "PASSWORD_DOES_NOT_MATCH"
+  },
+
+  "FAILED_CREATE_TOKEN": {
+    "message": "토큰을 생성하지 못했습니다.",
+    "code": "FAILED_CREATE_TOKEN"
+  },
+
+  "USER_NOT_EXIST": {
+    "message": "존재하지않는 유저입니다.",
+    "code": "USER_NOT_EXIST"
+  }
+}

@@ -1,0 +1,64 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id           Int      @id @default(autoincrement())
+  nickName     String
+  email        String   @unique
+  password     String
+  profilePhoto String?
+  introduce    String? // 한 줄 소개 글
+  role         Role     @default(MENTEE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  RefreshToken  RefreshToken?  @relation(name: "AccountRefreshToken") // 1:1
+  MentorProfile MentorProfile? @relation(name: "MentorAccount") // 1:1
+
+  @@map("accounts")
+}
+
+model RefreshToken {
+  id           Int      @id @default(autoincrement())
+  refreshToken String   @default("")
+  account      Account  @relation(name: "AccountRefreshToken", fields: [accountId], references: [id])
+  accountId    Int      @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("refresh_tokens")
+}
+
+model MentorProfile {
+  id              Int      @id @default(autoincrement())
+  mentorIntroduce String   @db.VarChar(100) // 100자 소개
+  portfolioLink   String?
+  major           String? // 직무
+  company         String? // 회사
+  isPublic        Boolean  @default(true) // 공개 여부
+  account         Account  @relation(name: "MentorAccount", fields: [accountId], references: [id])
+  accountId       Int      @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  Skill Skill[]
+
+  @@map("mentor_profiles")
+}
+
+model Skill {
+  id   Int    @id @default(autoincrement())
+  name String
+  logo String //  로고 이미지
+
+  mentorProfile MentorProfile[] // n:m
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+enum Role {
+  MENTEE
+  MENTOR
+}

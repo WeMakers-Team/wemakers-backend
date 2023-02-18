@@ -1,0 +1,20 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/wemakers
+permissions:
+  - object: /home/ubuntu/wemakers
+    owner: ubuntu
+    group: ubuntu
+    mode: 700
+
+hooks:
+  AfterInstall:
+    - location: /deploy.sh
+      timeout: 120
+      runas: ubuntu
+  ApplicationStart:
+    - location: /appstart.sh
+      timeout: 120
+      runas: ubuntu
