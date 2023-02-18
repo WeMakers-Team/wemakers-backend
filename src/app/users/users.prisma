@@ -36,29 +36,23 @@ model MentorProfile {
   mentorIntroduce String   @db.VarChar(100) // 100자 소개
   portfolioLink   String?
   major           String? // 직무
+  company         String? // 회사
+  isPublic        Boolean  @default(true) // 공개 여부
   account         Account  @relation(name: "MentorAccount", fields: [accountId], references: [id])
   accountId       Int      @unique
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  ProtFolioImg ProtFolioImg[] @relation(name: "MentorPortfolioImg")
-  Skill        Skill[]
+  Skill Skill[]
 
   @@map("mentor_profiles")
 }
 
-model ProtFolioImg {
-  id              Int           @id @default(autoincrement())
-  url             String
-  mentorProfile   MentorProfile @relation(name: "MentorPortfolioImg", fields: [mentorProfileId], references: [id])
-  mentorProfileId Int
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-}
-
 model Skill {
-  id            Int             @id @default(autoincrement())
-  name          String
+  id   Int    @id @default(autoincrement())
+  name String
+  logo String //  로고 이미지
+
   mentorProfile MentorProfile[] // n:m
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
