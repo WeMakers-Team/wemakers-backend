@@ -9,18 +9,18 @@ generator client {
 }
 
 model Account {
-  id            Int            @id @default(autoincrement())
-  nickName      String
-  email         String         @unique
-  password      String
-  profilePhoto  String?
-  introduce     String?
-  role          Role           @default(MENTEE)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  RefreshToken  RefreshToken?  @relation(name: "AccountRefreshToken")
-  MentorProfile MentorProfile? @relation(name: "MentorAccount")
-
+  id                Int                   @id @default(autoincrement())
+  nickName          String
+  email             String                @unique
+  password          String
+  profilePhoto      String?
+  introduce         String?
+  role              Role                  @default(MENTEE)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  RefreshToken      RefreshToken?         @relation(name: "AccountRefreshToken")
+  MentorProfile     MentorProfile?        @relation(name: "MentorAccount")
+  ChatAccountInfo      ChatUserInfo[]
   @@map("accounts")
 }
 
@@ -47,7 +47,6 @@ model MentorProfile {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   Skill           Skill[]  @relation(name: "MentorProfileToSkill")
-
   @@map("mentor_profiles")
 }
 
@@ -58,6 +57,25 @@ model Skill {
   mentorProfile MentorProfile[] @relation(name: "MentorProfileToSkill")
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+}
+
+model ChatRoom {
+  id                Int              @id @default(autoincrement())
+  roomName          String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt        
+  ChatRoomInfo      ChatUserInfo[]
+}
+
+model ChatUserInfo {
+  id              Int         @id @default(autoincrement())
+  isAccept        Boolean
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  chatRoomId      Int
+  ChatRoom        ChatRoom    @relation(fields: [chatRoomId], references: [id])
+  accountId       Int
+  Account         Account     @relation(fields: [accountId], references: [id])
 }
 
 enum Role {

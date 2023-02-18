@@ -11,6 +11,7 @@ import {
   HttpExceptionFilter,
   JwtexceptionFilter,
 } from './middleware/exception-filter';
+import { SocketModule } from './app/socket/socket.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +24,7 @@ import {
     }),
     UsersModule,
     AuthModule,
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [
